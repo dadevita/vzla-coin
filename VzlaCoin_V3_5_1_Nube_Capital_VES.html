@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vzla Coin V3.5.1</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+.wrap{max-width:1180px;margin:24px auto;padding:0 16px}.top{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:18px}.title h1{margin:0 0 4px;font-size:26px}.title p{margin:0;color:var(--muted)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab{border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:11px;cursor:pointer}.tab.active{background:#eaf1ff;border-color:#8fb1ff;color:#174ea6;font-weight:600}
+.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{background:#f7f8fa;border:1px solid var(--border);border-radius:13px;padding:14px}.metric .label{font-size:12px;color:var(--muted);margin-bottom:6px}.metric .value{font-size:22px;font-weight:700}.metric small{color:var(--muted)}
+label{display:block;font-size:14px;font-weight:600}input,select,textarea{width:100%;margin-top:6px;border:1px solid var(--border);border-radius:10px;padding:11px 12px;font:inherit;background:#fff}textarea{min-height:80px;resize:vertical}
+button{font:inherit}.btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.danger{color:#a52222}.btn.small{padding:6px 9px;font-size:12px}.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.muted{color:var(--muted);font-size:13px}.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.callout{background:#f7f8fa;border:1px solid var(--border);border-radius:13px;padding:14px;margin-top:14px}.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;margin-bottom:14px}.flowbox{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px}.arrow{text-align:center;color:#8b929a;font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}th{color:var(--muted);font-size:12px}.tablewrap{overflow:auto}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.dow{font-size:11px;color:var(--muted);text-align:center;padding:5px}.day{min-height:78px;background:#fff;border:1px solid var(--border);border-radius:11px;padding:8px;cursor:pointer}.day.empty{background:transparent;border:none;cursor:default}.day .num{font-size:12px;color:var(--muted)}.day .p{font-weight:700;margin-top:14px;font-size:13px}.day .pct{font-size:11px;color:var(--muted)}.day.has-profit{border-color:#9ad7ba;background:#f4fbf7}.day.has-loss{border-color:#e6aaaa;background:#fff7f7}.selected{outline:2px solid var(--accent)}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}.summary .big{font-size:30px;font-weight:800}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.modal-back.show{display:flex}.modal{background:#fff;border-radius:16px;max-width:680px;width:100%;padding:20px;max-height:90vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center}
+.note{font-size:12px;color:var(--muted)}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.grid,.summary{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+
+/* =========================
+   VZLA COIN — VISUAL THEME
+   Functional base: V3.2
+   ========================= */
+:root{
+  --vz-bg:#07070b;
+  --vz-card:#111018;
+  --vz-control:#171720;
+  --vz-border:#282735;
+  --vz-text:#f4f4f7;
+  --vz-muted:#9292a5;
+  --vz-accent:#7658f5;
+  --vz-accent-2:#8b5cf6;
+  --vz-good:#48e0a0;
+  --vz-bad:#ff4d6d;
+  --vz-warn:#f0b84b;
+}
+body{
+  background:
+    radial-gradient(circle at 50% -12%,rgba(118,88,245,.10),transparent 36%),
+    var(--vz-bg);
+  color:var(--vz-text);
+  transition:background .2s ease,color .2s ease;
+}
+.wrap{max-width:1180px}
+.title h1{
+  background:linear-gradient(90deg,#f4f4f7,#9d86ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.title p,.muted,.note{color:var(--vz-muted)}
+.card,.flowbox,.metric,.day,.modal{
+  background:var(--vz-card);
+  color:var(--vz-text);
+  border-color:var(--vz-border);
+  box-shadow:0 8px 28px rgba(0,0,0,.18);
+}
+.flowbox{background:linear-gradient(145deg,#14131b,#0e0e13)}
+.metric{background:linear-gradient(145deg,#15141d,#101016)}
+input,select,textarea{
+  background:var(--vz-control);
+  color:var(--vz-text);
+  border-color:var(--vz-border);
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--vz-accent);
+  box-shadow:0 0 0 3px rgba(118,88,245,.12);
+}
+.btn,.tab{
+  background:linear-gradient(145deg,#171720,#101016);
+  color:#e8e8ef;
+  border-color:var(--vz-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 5px 18px rgba(0,0,0,.20);
+}
+.btn:hover,.tab:hover{
+  background:linear-gradient(145deg,#211d31,#15131e);
+  border-color:#5b4b8f;
+  color:#fff;
+}
+.btn.primary{
+  background:linear-gradient(135deg,#6f54e9,#8b5cf6);
+  color:#fff;
+  border-color:#8d78ff;
+  box-shadow:0 0 22px rgba(118,88,245,.20);
+}
+.tab.active{
+  background:linear-gradient(135deg,#6f54e9,#8b5cf6);
+  color:#fff;
+  border-color:#8d78ff;
+  box-shadow:0 0 22px rgba(118,88,245,.22);
+}
+.btn.danger{color:var(--vz-bad)}
+.callout{background:#15131d;border-color:#302b42}
+.day{background:#12121a}
+.day.has-profit{border-color:rgba(72,224,160,.38);background:#101a17}
+.day.has-loss{border-color:rgba(255,77,109,.38);background:#1b1014}
+.good{color:var(--vz-good)}.bad{color:var(--vz-bad)}
+table tr:hover td{background:rgba(118,88,245,.035)}
+th{color:var(--vz-muted)}
+.calendar-head .btn{background:linear-gradient(145deg,#171720,#101016)}
+.modal-back{background:rgba(0,0,0,.58)}
+.modal{border-color:#302d3b}
+.vz-theme-toggle{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border:1px solid var(--vz-border);
+  background:linear-gradient(145deg,#171720,#101016);
+  color:#e8e8ef;
+  border-radius:11px;
+  padding:9px 12px;
+  cursor:pointer;
+  font:inherit;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 5px 18px rgba(0,0,0,.20);
+}
+.vz-theme-toggle:hover{border-color:#5b4b8f;background:#211d31}
+.vz-theme-icon{font-size:15px}
+body.vz-light{
+  --vz-bg:#f4f5f7;
+  --vz-card:#ffffff;
+  --vz-control:#ffffff;
+  --vz-border:#dfe3e8;
+  --vz-text:#17191d;
+  --vz-muted:#69717d;
+  background:linear-gradient(180deg,#f7f7f9,#eef0f3);
+}
+body.vz-light .title h1{
+  background:linear-gradient(90deg,#20232a,#7658f5);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+body.vz-light .card,body.vz-light .metric,body.vz-light .day,body.vz-light .modal{
+  box-shadow:0 8px 24px rgba(20,25,35,.06);
+}
+body.vz-light .flowbox{background:#fff}
+body.vz-light .metric{background:#f8f9fb}
+body.vz-light .btn,body.vz-light .tab,body.vz-light .vz-theme-toggle{
+  background:#fff;color:#20232a;box-shadow:0 2px 8px rgba(20,25,35,.05)
+}
+body.vz-light .btn:hover,body.vz-light .tab:hover{background:#f4f1ff;border-color:#b7aaff;color:#392b91}
+body.vz-light .btn.primary,body.vz-light .tab.active{
+  background:linear-gradient(135deg,#6f54e9,#8b5cf6);color:#fff;border-color:#8d78ff
+}
+body.vz-light .day{background:#fff}
+body.vz-light .day.has-profit{background:#f3fbf7;border-color:#a8dec6}
+body.vz-light .day.has-loss{background:#fff5f7;border-color:#efb2c0}
+body.vz-light .callout{background:#faf8ff;border-color:#d8cffc}
+body.vz-light .modal-back{background:rgba(20,24,35,.35)}
+
+
+/* =========================
+   V3.3 — DASHBOARD MENSUAL
+   Additive UI only
+   ========================= */
+.vz-month-dashboard{
+  margin-bottom:14px;
+}
+.vz-dashboard-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:14px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.vz-dashboard-title{
+  margin:0;
+  font-size:20px;
+}
+.vz-dashboard-sub{
+  margin:4px 0 0;
+  color:var(--vz-muted,#9292a5);
+  font-size:13px;
+}
+.vz-month-kpis{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.vz-month-kpi{
+  background:linear-gradient(145deg,#15141d,#101016);
+  border:1px solid var(--vz-border,#282735);
+  border-radius:13px;
+  padding:13px;
+}
+.vz-month-kpi .klabel{
+  color:var(--vz-muted,#9292a5);
+  font-size:11px;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.vz-month-kpi .kvalue{
+  margin-top:5px;
+  font-size:21px;
+  font-weight:750;
+}
+.vz-month-kpi .ksub{
+  margin-top:3px;
+  color:var(--vz-muted,#9292a5);
+  font-size:11px;
+}
+.vz-month-extra{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.vz-mini-stat{
+  background:#0e0e14;
+  border:1px solid var(--vz-border,#282735);
+  border-radius:12px;
+  padding:11px 13px;
+}
+.vz-mini-stat .label{color:var(--vz-muted,#9292a5);font-size:11px}
+.vz-mini-stat .value{font-weight:700;margin-top:4px}
+.vz-growth-up{color:#48e0a0}
+.vz-growth-down{color:#ff4d6d}
+.vz-growth-neutral{color:var(--vz-muted,#9292a5)}
+.vz-evolution{
+  margin-top:12px;
+  border-top:1px solid var(--vz-border,#282735);
+  padding-top:12px;
+}
+.vz-evolution-title{
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:9px;
+}
+.vz-evolution-row{
+  display:grid;
+  grid-template-columns:110px 1fr 125px 75px;
+  gap:10px;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid rgba(128,128,150,.08);
+  font-size:12px;
+}
+.vz-evolution-row:last-child{border-bottom:0}
+.vz-bar-wrap{
+  height:8px;
+  border-radius:99px;
+  background:#0a0a0f;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.035);
+}
+.vz-bar{
+  height:100%;
+  border-radius:99px;
+  background:linear-gradient(90deg,#6f54e9,#8b5cf6);
+  min-width:2px;
+}
+.vz-bar.negative{background:linear-gradient(90deg,#b72e50,#ff4d6d)}
+body.vz-light .vz-month-kpi{background:#f8f9fb}
+body.vz-light .vz-mini-stat{background:#fff}
+body.vz-light .vz-bar-wrap{background:#eef0f4}
+@media(max-width:900px){
+  .vz-month-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .vz-month-kpis,.vz-month-extra{grid-template-columns:1fr 1fr}
+  .vz-evolution-row{grid-template-columns:75px 1fr 95px 55px}
+}
+
+
+.vz-auto-time{
+  accent-color:#7658f5;
+}
+
+
+/* V3.4 — CIERRE DIARIO / CONCILIACIÓN */
+.vz-close-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.vz-close-box{background:linear-gradient(145deg,#15141d,#101016);border:1px solid var(--vz-border,#282735);border-radius:14px;padding:15px}
+.vz-close-box .label{color:var(--vz-muted,#9292a5);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.vz-close-box .big{font-size:24px;font-weight:750;margin-top:5px}
+.vz-reconcile{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.vz-reconcile .rbox{background:#0e0e14;border:1px solid var(--vz-border,#282735);border-radius:12px;padding:12px}
+.vz-reconcile .rlabel{color:var(--vz-muted,#9292a5);font-size:11px}
+.vz-reconcile .rvalue{font-weight:750;font-size:18px;margin-top:4px}
+.vz-ok{color:#48e0a0}.vz-error{color:#ff4d6d}.vz-neutral{color:var(--vz-muted,#9292a5)}
+.vz-close-history{width:100%;border-collapse:collapse}
+.vz-close-history th,.vz-close-history td{padding:10px 8px;border-bottom:1px solid rgba(128,128,150,.10);text-align:left;font-size:12px}
+.vz-close-history th{color:var(--vz-muted,#9292a5);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.vz-close-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700}
+.vz-close-pill.ok{background:rgba(72,224,160,.10);color:#48e0a0;border:1px solid rgba(72,224,160,.22)}
+.vz-close-pill.error{background:rgba(255,77,109,.10);color:#ff4d6d;border:1px solid rgba(255,77,109,.22)}
+.vz-commission-note{font-size:11px;color:var(--vz-muted,#9292a5);margin-top:5px}
+body.vz-light .vz-close-box{background:#f8f9fb}
+body.vz-light .vz-reconcile .rbox{background:#fff}
+@media(max-width:760px){
+  .vz-close-grid,.vz-reconcile{grid-template-columns:1fr}
+}
+
+
+/* V3.4.1 — three-level daily reconciliation status */
+.vz-close-pill.warn{background:rgba(240,184,75,.10);color:#f0b84b;border:1px solid rgba(240,184,75,.24)}
+.vz-close-status-warn{color:#f0b84b!important}
+.vz-tolerance-note{
+  margin-top:10px;
+  color:var(--vz-muted,#9292a5);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.vz-commission-note{color:var(--vz-muted,#9292a5);font-size:11px;line-height:1.4}
+
+/* V3.5.0 — inventario USDT, orden de movimientos y ajustes visuales */
+.vz-history-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vz-history-controls .btn.active{background:linear-gradient(135deg,#6f54e9,#8b5cf6);color:#fff;border-color:#8d78ff}
+.vz-history-order{font-size:12px;color:var(--vz-muted,#9292a5)}
+.vz-usdt-box{border-color:#3b335a;background:linear-gradient(145deg,#171422,#0f0e15)}
+body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
+@media(max-width:620px){.vz-history-controls{width:100%}.vz-history-controls .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.1</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+
+<div id="cloudPanel" style="margin:0 0 14px 0" class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0">☁️ Conexión en la nube</h2>
+      <p class="muted" style="margin:5px 0 0">Tus movimientos se sincronizan con Supabase. El navegador mantiene un respaldo local.</p>
+    </div>
+    <div id="cloudStatus" class="muted">⚪ Sin iniciar sesión</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+    <label>Email<input id="cloudEmail" type="email" autocomplete="email" placeholder="Tu correo"></label>
+    <label>Contraseña<input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres"></label>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button type="button" class="btn primary" id="cloudSignup">Crear cuenta nube</button>
+    <button type="button" class="btn" id="cloudLogin">Iniciar sesión</button>
+    <button type="button" class="btn primary" id="cloudSync" disabled>☁️ Sincronizar ahora</button>
+    <button type="button" class="btn" id="cloudLogout" disabled>Cerrar sesión</button>
+  </div>
+  <div id="cloudMessage" class="muted" style="margin-top:8px"></div><div id="cloudSyncStatus" class="muted" style="margin-top:5px"></div>
+</div>
+
+<div class="tabs">
+<button class="tab active" data-tab="calc">1 · Calculadora de tasa</button>
+<button class="tab" data-tab="journal">2 · Journal</button>
+<button class="tab" data-tab="investment">3 · Inversión</button>
+<button class="tab" data-tab="remittance">4 · Remesa</button>
+<button class="tab" data-tab="cash">5 · Caja</button>
+<button class="tab" data-tab="history">6 · Movimientos</button>
+<button class="tab" data-tab="daily">7 · Bitácora diaria</button><button class="tab" data-tab="closing">8 · Cierre diario</button>
+</div>
+
+<section id="calc" class="panel active">
+<div class="flow">
+<div class="flowbox"><div class="muted">1 · Capital</div><b>Capital invertido</b><div class="muted">CLP</div></div><div class="arrow">→</div>
+<div class="flowbox"><div class="muted">2 · Binance</div><b>CLP → USDT → VES</b><div class="muted">Cruce P2P</div></div><div class="arrow">→</div>
+<div class="flowbox"><div class="muted">3 · Venezuela</div><b>− banco</b><div class="muted">VES netos</div></div>
+</div>
+<div class="card">
+<h2>Datos de la operación</h2><p class="muted">Calcula la tasa del día y cuánto ganarías según la tasa pública que decidas colocar.</p>
+<div class="grid">
+<label>Capital invertido (CLP)<input id="c_cap" type="number" value="100000" step="1"></label>
+<label>Comisión banco Venezuela (%)<input id="c_bank" type="number" value="0.30" step="0.01"></label>
+<label>Compra Binance (CLP/USDT)<input id="c_buy" type="number" value="926" step="0.01"></label>
+<label>Venta Binance (VES/USDT)<input id="c_sell" type="number" value="910" step="0.01"></label>
+<label>Comisión Binance total (USDT)<input id="c_fee" type="number" value="0.12" step="0.0001"></label>
+<label>Tu comisión objetivo (%)<input id="c_target" type="number" value="6" step="0.01"></label>
+</div>
+<label style="margin-top:14px;font-weight:500"><input id="c_discount" type="checkbox" checked style="width:auto;margin-right:7px">Descontar mi comisión del capital enviado (modelo actual)</label>
+<div class="grid" style="margin-top:14px">
+<label>Tasa pública que publicarás (VES/CLP)<input id="c_public" type="number" value="0.9225" step="0.000001"></label>
+<label>Observación<input id="c_note" type="text" placeholder="Ej. Remesa Venezuela"></label>
+</div>
+<div class="actions"><button class="btn primary" id="calcBtn">Calcular remesa</button></div>
+</div>
+<div class="kpis">
+<div class="metric"><div class="label">Tasa del día</div><div class="value" id="c_day">0,000000</div><small>VES/CLP</small></div>
+<div class="metric"><div class="label">Destinatario recibe</div><div class="value" id="c_rec">0</div><small>VES</small></div>
+<div class="metric"><div class="label">Ganancia real</div><div class="value" id="c_pct">0,00 %</div><small>sobre capital</small></div>
+<div class="metric"><div class="label">Ganancia equivalente</div><div class="value" id="c_profit">0 CLP</div><small>según el cruce</small></div>
+</div>
+<div class="grid" style="margin-top:14px">
+<div class="card"><h3>Resumen del cruce</h3><div class="grid3">
+<div class="metric"><div class="label">Capital</div><div class="value" id="c_cap_out">0</div><small>CLP</small></div>
+<div class="metric"><div class="label">USDT bruto</div><div class="value" id="c_gross">0</div><small>USDT</small></div>
+<div class="metric"><div class="label">USDT neto</div><div class="value" id="c_net">0</div><small>USDT</small></div>
+<div class="metric"><div class="label">VES antes banco</div><div class="value" id="c_grossves">0</div><small>VES</small></div>
+<div class="metric"><div class="label">Comisión banco</div><div class="value" id="c_bankcost">0</div><small>VES</small></div>
+<div class="metric"><div class="label">VES netos</div><div class="value" id="c_avail">0</div><small>VES</small></div>
+</div></div>
+<div class="card"><h3>Tu resultado según la tasa pública</h3><div class="grid3">
+<div class="metric"><div class="label">Tasa pública</div><div class="value" id="c_public_out">0,000000</div><small>VES/CLP</small></div>
+<div class="metric"><div class="label">VES entregados</div><div class="value" id="c_rec2">0</div><small>VES</small></div>
+<div class="metric"><div class="label">Ganancia VES</div><div class="value" id="c_profitves">0</div><small>VES</small></div>
+<div class="metric"><div class="label">Ganancia CLP</div><div class="value" id="c_profitclp">0</div><small>CLP</small></div>
+<div class="metric"><div class="label">Diferencia vs objetivo</div><div class="value" id="c_diff">0,00 pp</div><small>puntos porcentuales</small></div>
+<div class="metric"><div class="label">Comisión efectiva</div><div class="value" id="c_effective">0,00 %</div><small>real</small></div>
+</div></div>
+</div>
+<div class="callout" id="c_warning"></div>
+</section>
+
+<section id="journal" class="panel">
+<div class="card">
+<h2>Inicio del Journal</h2><p class="muted">Establece una vez la caja con la que comienzas. También puedes tener VES iniciales.</p>
+<div class="grid">
+<label>Capital/caja inicial (CLP)<input id="open_cash" type="number" value="400000" step="1"></label>
+<label>VES iniciales (opcional)<input id="open_ves" type="number" value="0" step="0.01"></label>
+</div>
+<div class="actions"><button class="btn primary" id="startBtn">Establecer saldo inicial</button><button class="btn danger" id="clearBtn">Borrar todo el Journal</button></div>
+<div class="note" id="startMsg"></div>
+</div>
+<div class="kpis">
+<div class="metric"><div class="label">Caja CLP</div><div class="value" id="j_cash">0</div></div>
+<div class="metric vz-usdt-box"><div class="label">Inventario USDT</div><div class="value" id="j_usdt">0</div><small id="j_usdt_avg">Costo: 0,00 CLP/USDT</small></div>
+<div class="metric"><div class="label">Inventario VES</div><div class="value" id="j_ves">0</div></div>
+<div class="metric"><div class="label">Costo promedio VES</div><div class="value" id="j_avg">0,000000</div><small>CLP/VES</small></div>
+<div class="metric"><div class="label">Ganancia realizada</div><div class="value" id="j_profit">0</div><small>CLP</small></div>
+</div>
+<div class="grid" style="margin-top:14px">
+<div class="card"><h3>Estado</h3><p>CLP recibidos de clientes: <b id="j_received">0</b></p><p>CLP invertidos: <b id="j_invested">0</b></p><p>VES enviados: <b id="j_sent">0</b></p><p>Inversiones: <b id="j_icount">0</b></p><p>Remesas: <b id="j_rcount">0</b></p></div>
+<div class="card"><h3>Inventario</h3><p>USDT disponibles: <b id="j_usdt_detail">0 USDT</b></p><p>Costo USDT: <b id="j_usdt_cost">0 CLP</b></p><p>Costo VES: <b id="j_cost">0 CLP</b></p><p>Valor VES a última tasa: <b id="j_value">0 CLP</b></p><p>Ganancia potencial VES: <b id="j_potential">0 CLP</b></p></div>
+</div>
+</section>
+
+<section id="investment" class="panel">
+<div class="card">
+<h2>Inversión e inventario USDT</h2><p class="muted">Compra USDT cuando quieras y véndelos por partes. El sistema conserva el saldo restante y calcula el costo de cada venta con el costo promedio del USDT disponible.</p>
+<div class="grid">
+<label>Operación<select id="i_operation"><option value="purchase">Comprar USDT</option><option value="sale">Vender USDT → VES</option></select></label>
+<label>Fecha/hora<input id="i_date" type="datetime-local"></label>
+</div>
+<div id="i_purchase_fields" class="grid" style="margin-top:12px">
+<label>CLP invertidos<input id="i_clp" type="number" value="400000" step="1"></label>
+<label>Compra Binance (CLP/USDT)<input id="i_buy" type="number" value="926" step="0.01"></label>
+<label>Comisión Binance (USDT)<input id="i_fee" type="number" value="0.12" step="0.0001"></label>
+</div>
+<div id="i_sale_fields" class="grid" style="display:none;margin-top:12px">
+<label>USDT a vender<input id="i_usdt_sale" type="number" value="200" step="0.01"></label>
+<label>Venta Binance (VES/USDT)<input id="i_sell" type="number" value="928.10" step="0.01"></label>
+<label>Comisión Binance (USDT)<input id="i_sale_fee" type="number" value="0" step="0.0001"></label>
+<label>Comisión banco Venezuela (%)<input id="i_bank" type="number" value="0.30" step="0.01"></label>
+</div>
+<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="i_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
+<div class="callout" id="i_purchase_preview"><b>USDT netos comprados:</b> <span id="i_result">0</span> USDT · <b>Costo:</b> <span id="i_cost">0,00</span> CLP/USDT</div>
+<div class="callout" id="i_sale_preview" style="display:none"><b>USDT disponibles:</b> <span id="i_usdt_available">0</span> · <b>VES netos al inventario:</b> <span id="i_sale_result">0</span> VES · <b>Costo:</b> <span id="i_sale_cost">0,000000</span> CLP/VES</div>
+<div class="note" id="i_check"></div>
+<div class="actions"><button class="btn primary" id="i_add">Registrar compra USDT</button></div><div class="note" id="i_msg"></div>
+</div>
+</section>
+
+<section id="remittance" class="panel">
+<div class="card">
+<h2>Nueva remesa</h2><p class="muted">Cada cliente puede tener una tasa pública distinta.</p>
+<div class="grid">
+<label>CLP recibido del cliente<input id="r_clp" type="number" value="46125" step="1"></label>
+<label>Tasa publicada (VES/CLP)<input id="r_rate" type="number" value="0.9225" step="0.000001"></label>
+<label>VES entregados<input id="r_ves" type="number" value="50000" step="0.01"></label>
+<label>Cliente / referencia<input id="r_ref" type="text" placeholder="Cliente 001"></label>
+<label style="display:flex;align-items:center;gap:8px;margin-top:7px">
+<input id="r_bank_charge" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">
+Genera comisión bancaria (0,30%)
+</label>
+<div class="vz-commission-note">Desmárcalo si la transferencia es dentro del mismo banco y no genera el 0,30%.</div>
+<label style="display:flex;align-items:center;gap:8px;margin-top:12px">
+<input id="r_staff_charge" type="checkbox" class="vz-auto-time" style="width:auto;margin:0">
+Paga comisión a colaborador
+</label>
+<div class="grid" id="r_staff_fields" style="display:none;margin-top:10px">
+<label>Colaborador<input id="r_staff_name" type="text" value="Yoselin Mendez"></label>
+<label>Comisión colaborador (%)<input id="r_staff_pct" type="number" value="2" step="0.01" min="0"></label>
+</div>
+<div class="vz-commission-note">Se calcula sobre los CLP recibidos y reduce tu ganancia. Queda como comisión pendiente hasta que registres su pago.</div>
+<label>Fecha/hora<input id="r_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="r_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
+</div>
+<div class="grid" style="margin-top:14px">
+<div class="metric"><div class="label">Costo de VES entregados</div><div class="value" id="r_cost">0 CLP</div></div>
+<div class="metric"><div class="label">Ganancia realizada</div><div class="value" id="r_profit">0 CLP</div><small id="r_pct">0,00%</small></div><div class="metric"><div class="label">Comisión bancaria</div><div class="value" id="r_bank_fee">0,00 VES</div><small>se descuenta del inventario</small></div>
+<div class="metric" id="r_staff_metric" style="display:none"><div class="label">Comisión colaborador</div><div class="value" id="r_staff_fee">0,00 CLP</div><small>pendiente de pago</small></div>
+</div>
+<div class="actions"><button class="btn primary" id="r_add">Registrar remesa</button></div><div class="note" id="r_msg"></div>
+</div>
+</section>
+
+<section id="cash" class="panel">
+<div class="card">
+<h2>Movimiento de caja CLP / VES</h2><p class="muted">Usa esta sección para movimientos que no sean una remesa ni una inversión. Los aportes de capital pueden registrarse en CLP o VES.</p>
+<div class="grid">
+<label>Tipo<select id="cf_type"><option value="client">Ingreso de cliente</option><option value="capital">Aporte de capital</option><option value="withdraw">Retiro</option><option value="other">Otro ingreso</option></select></label>
+<label>Moneda<select id="cf_currency"><option value="CLP">CLP</option><option value="VES">VES</option></select></label>
+<label id="cf_clp_wrap">Monto CLP<input id="cf_clp" type="number" value="100000" step="0.01"></label>
+<label id="cf_ves_wrap" style="display:none">Monto VES<input id="cf_ves" type="number" value="0" step="0.01"></label>
+<label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
+<label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
+</div>
+<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia.</div>
+<div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
+</div>
+</section>
+
+<section id="history" class="panel">
+<div class="card">
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h2>Movimientos</h2><p class="muted">Puedes editar o eliminar cualquier movimiento. El Journal se recalcula completo.</p></div><div class="vz-history-controls"><span class="vz-history-order">Orden:</span><button type="button" class="btn small active" id="historyNewest">⬇️ Más recientes</button><button type="button" class="btn small" id="historyOldest">⬆️ Más antiguos</button></div></div>
+<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>CLP</th><th>VES</th><th>Tasa</th><th>Resultado</th><th>Referencia</th><th>Acciones</th></tr></thead><tbody id="history_body"></tbody></table></div>
+</div>
+</section>
+
+
+<section id="daily" class="panel">
+<div class="card vz-month-dashboard">
+  <div class="vz-dashboard-head">
+    <div>
+      <h2 class="vz-dashboard-title">📊 Resumen del mes</h2>
+      <p class="vz-dashboard-sub">Métricas de rendimiento basadas únicamente en remesas realizadas.</p>
+    </div>
+  </div>
+
+  <div class="vz-month-kpis">
+    <div class="vz-month-kpi">
+      <div class="klabel">Ganancia neta</div>
+      <div class="kvalue good" id="md_profit">$0,00 CLP</div>
+      <div class="ksub">ganancia realizada del mes</div>
+    </div>
+    <div class="vz-month-kpi">
+      <div class="klabel">Rentabilidad</div>
+      <div class="kvalue good" id="md_pct">0,00%</div>
+      <div class="ksub">ganancia ÷ CLP procesados</div>
+    </div>
+    <div class="vz-month-kpi">
+      <div class="klabel">CLP procesados</div>
+      <div class="kvalue" id="md_clp">$0,00</div>
+      <div class="ksub">pagados por clientes</div>
+    </div>
+    <div class="vz-month-kpi">
+      <div class="klabel">Remesas</div>
+      <div class="kvalue" id="md_rem">0</div>
+      <div class="ksub">operaciones realizadas</div>
+    </div>
+  </div>
+
+  <div class="vz-month-extra">
+    <div class="vz-mini-stat">
+      <div class="label">Clientes</div>
+      <div class="value" id="md_clients">0</div>
+    </div>
+    <div class="vz-mini-stat">
+      <div class="label">VES enviados</div>
+      <div class="value" id="md_ves">0,00 VES</div>
+    </div>
+    <div class="vz-mini-stat">
+      <div class="label">Ganancia promedio / remesa</div>
+      <div class="value" id="md_avg_profit">$0,00 CLP</div>
+    </div>
+    <div class="vz-mini-stat">
+      <div class="label">Comisiones colaboradores</div>
+      <div class="value" id="md_staff_fee">$0,00 CLP</div>
+    </div>
+  </div>
+
+  <div class="vz-mini-stat" style="margin-top:10px">
+    <div class="label">Crecimiento vs. mes anterior</div>
+    <div class="value" id="md_growth">Sin mes anterior</div>
+  </div>
+
+  <div class="vz-evolution">
+    <div class="vz-evolution-title">Evolución mensual · ganancia neta</div>
+    <div id="md_evolution"><div class="muted">Aún no hay suficientes datos.</div></div>
+  </div>
+</div>
+
+<div class="card">
+<div class="calendar-head"><button class="btn" id="prevMonth">‹</button><h2 id="monthTitle" style="margin:0"></h2><button class="btn" id="nextMonth">›</button></div>
+<div class="cal-grid" id="calendar"></div>
+</div>
+<div class="card" id="dayDetail"><h2>Resumen diario</h2><p class="muted">Selecciona un día del calendario.</p></div>
+</section>
+
+
+<section id="closing" class="panel">
+<div class="card">
+  <h2>🔒 Cierre diario</h2>
+  <p class="muted">Conciliación del día. El sistema calcula los saldos teóricos y tú introduces los saldos reales que ves en tus bancos.</p>
+  <div class="grid">
+    <label>Fecha del cierre<input id="close_date" type="date"></label>
+    <label>Hora del cierre<input id="close_time" type="time"></label>
+  </div>
+
+  <div class="vz-close-grid" style="margin-top:14px">
+    <div class="vz-close-box">
+      <div class="label">CLP · Sistema</div>
+      <div class="big" id="close_sys_clp">0,00 CLP</div>
+    </div>
+    <div class="vz-close-box">
+      <div class="label">CLP · Saldo real</div>
+      <input id="close_real_clp" type="number" step="0.01" placeholder="Introduce el saldo real">
+    </div>
+    <div class="vz-close-box">
+      <div class="label">VES · Sistema</div>
+      <div class="big" id="close_sys_ves">0,00 VES</div>
+    </div>
+    <div class="vz-close-box">
+      <div class="label">VES · Saldo real</div>
+      <input id="close_real_ves" type="number" step="0.01" placeholder="Introduce el saldo real">
+    </div>
+  </div>
+
+  <div class="vz-reconcile">
+    <div class="rbox"><div class="rlabel">Diferencia CLP</div><div class="rvalue" id="close_diff_clp">—</div></div>
+    <div class="rbox"><div class="rlabel">Diferencia VES</div><div class="rvalue" id="close_diff_ves">—</div></div>
+    <div class="rbox"><div class="rlabel">Estado</div><div class="rvalue" id="close_status">Pendiente</div></div><div class="vz-tolerance-note">🟢 Cuadrado: ≤ 0,01 CLP y ≤ 0,01 VES · 🟡 Diferencia menor: ≤ 100 CLP y ≤ 100 VES · 🔴 Diferencia a revisar: supera alguno de esos límites.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Resultado del día</h2>
+  <div class="grid3">
+    <div class="metric"><div class="label">Ganancia neta</div><div class="value good" id="close_profit">0,00 CLP</div></div>
+    <div class="metric"><div class="label">Remesas</div><div class="value" id="close_rem">0</div></div>
+    <div class="metric"><div class="label">Clientes</div><div class="value" id="close_clients">0</div></div>
+    <div class="metric"><div class="label">CLP procesados</div><div class="value" id="close_clp_day">0,00 CLP</div></div>
+    <div class="metric"><div class="label">VES entregados</div><div class="value" id="close_ves_day">0,00 VES</div></div>
+    <div class="metric"><div class="label">Comisiones bancarias</div><div class="value" id="close_bank_day">0,00 VES</div></div>
+<div class="metric"><div class="label">Comisiones colaboradores</div><div class="value" id="close_staff_day">0,00 CLP</div></div>
+  </div>
+  <div class="actions">
+    <button class="btn primary" id="close_preview">Actualizar conciliación</button>
+    <button class="btn primary" id="close_save">🔒 Cerrar día</button>
+  </div>
+  <div class="note" id="close_msg"></div>
+</div>
+
+<div class="card">
+  <h2>Histórico de cierres</h2>
+  <div style="overflow:auto">
+    <table class="vz-close-history">
+      <thead><tr><th>Fecha</th><th>CLP real</th><th>Dif. CLP</th><th>VES real</th><th>Dif. VES</th><th>Ganancia</th><th>Estado</th></tr></thead>
+      <tbody id="close_history_body"><tr><td colspan="7" class="muted">Aún no hay cierres.</td></tr></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<div class="modal-back" id="modalBack"><div class="modal"><div class="modal-head"><h2>Editar movimiento</h2><button class="btn" id="closeModal">✕</button></div><div id="modalBody"></div></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://sbxyestftyhtviqvixva.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_MITHLBQWoXEBZIZArDU9Mg_pkTR-pHY";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+const $=id=>document.getElementById(id);
+const money=v=>new Intl.NumberFormat('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v)||0);
+const num4=v=>new Intl.NumberFormat('es-CL',{minimumFractionDigits:4,maximumFractionDigits:4}).format(Number(v)||0);
+const rateFmt=v=>new Intl.NumberFormat('es-CL',{minimumFractionDigits:6,maximumFractionDigits:6}).format(Number(v)||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const todayLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+const refreshAutoDate=()=>{
+  ['i','r','cf'].forEach(p=>{
+    const cb=$(p+'_date_auto'), input=$(p+'_date');
+    if(cb&&input&&cb.checked) input.value=todayLocal();
+  });
+};
+['i','r','cf'].forEach(p=>{
+  const cb=$(p+'_date_auto');
+  if(cb) cb.addEventListener('change',()=>{
+    if(cb.checked) $(p+'_date').value=todayLocal();
+  });
+});
+
+['i_date','r_date','cf_date'].forEach(id=>$(id).value=todayLocal());
+
+let data=JSON.parse(localStorage.getItem('remesas_v32')||'null')||{moves:[],seq:0,started:false,openingId:null}; data.closures=Array.isArray(data.closures)?data.closures:[];
+let calDate=new Date();
+let historyOrder='desc';
+
+function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
+
+// ============================================================
+  // SINCRONIZACION CLOUD · VERSION DEFINITIVA
+  // localStorage sigue siendo respaldo local; Supabase es la fuente
+  // compartida para que el mismo Journal pueda abrirse en otros dispositivos.
+  // ============================================================
+  let cloudSyncBusy=false;
+
+  async function cloudUser(){
+    try{
+      const {data:{user},error}=await supabaseClient.auth.getUser();
+      if(error) throw error;
+      return user||null;
+    }catch(e){ return null; }
+  }
+
+  function cloudPayloadForMove(m){
+    replay();
+    return JSON.parse(JSON.stringify(m));
+  }
+
+  function cloudSetStatus(text,good=false){
+    const el=$('cloudSyncStatus');
+    if(!el)return;
+    el.textContent=text||'';
+    el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
+  }
+
+  async function syncMoveToCloud(m){
+    const user=await cloudUser();
+    if(!user) return {ok:false,reason:'not_authenticated'};
+    const payload=cloudPayloadForMove(m);
+    const row={
+      user_id:user.id,
+      legacy_id:String(m.id),
+      seq:Number(m.seq)||0,
+      type:String(m.type||''),
+      occurred_at:new Date(m.date).toISOString(),
+      payload,
+      updated_at:new Date().toISOString()
+    };
+    const {error}=await supabaseClient.from('journal_moves')
+      .upsert(row,{onConflict:'user_id,legacy_id'});
+    if(error) throw error;
+    return {ok:true};
+  }
+
+  async function deleteMoveFromCloud(m){
+    const user=await cloudUser();
+    if(!user) return {ok:false,reason:'not_authenticated'};
+    const {error}=await supabaseClient.from('journal_moves')
+      .delete().eq('user_id',user.id).eq('legacy_id',String(m.id));
+    if(error) throw error;
+    return {ok:true};
+  }
+
+  async function pullMovesFromCloud(){
+    const user=await cloudUser();
+    if(!user) return {ok:false,reason:'not_authenticated',added:0,total:0};
+
+    const {data:rows,error}=await supabaseClient
+      .from('journal_moves')
+      .select('legacy_id,seq,type,occurred_at,payload,updated_at')
+      .eq('user_id',user.id)
+      .order('seq',{ascending:true});
+
+    if(error) throw error;
+
+    const localById=new Map((data.moves||[]).map(m=>[String(m.id),m]));
+    let added=0,updated=0;
+    let maxSeq=Number(data.seq)||0;
+
+    for(const row of (rows||[])){
+      const payload=row.payload && typeof row.payload==='object'
+        ? JSON.parse(JSON.stringify(row.payload)) : null;
+      if(!payload) continue;
+
+      const id=String(payload.id||row.legacy_id||'');
+      if(!id) continue;
+
+      // Cloud is authoritative for an already-synced legacy_id.
+      if(localById.has(id)){
+        const idx=data.moves.findIndex(m=>String(m.id)===id);
+        if(idx>=0){
+          data.moves[idx]=payload;
+          updated++;
+        }
+      }else{
+        data.moves.push(payload);
+        localById.set(id,payload);
+        added++;
+      }
+
+      maxSeq=Math.max(maxSeq,Number(payload.seq)||0,Number(row.seq)||0);
+    }
+
+    data.seq=maxSeq;
+    data.started=data.moves.some(m=>m.type==='opening');
+    data.openingId=(data.moves.find(m=>m.type==='opening')||{}).id||null;
+
+    save();
+    render();
+    return {ok:true,added,updated,total:(rows||[]).length};
+  }
+
+  async function pushAllMovesToCloud(){
+    const user=await cloudUser();
+    if(!user) return {ok:false,reason:'not_authenticated',count:0};
+
+    const moves=[...(data.moves||[])];
+    let count=0;
+    for(const m of moves){
+      const r=await syncMoveToCloud(m);
+      if(r.ok) count++;
+    }
+    return {ok:true,count};
+  }
+
+  async function cloudSyncAll(){
+    if(cloudSyncBusy)return;
+    cloudSyncBusy=true;
+    try{
+      const user=await cloudUser();
+      if(!user){
+        cloudSetStatus('⚪ Sin sesión en la nube.');
+        return;
+      }
+
+      cloudSetStatus('☁️ Sincronizando…');
+      const pulled=await pullMovesFromCloud();
+      const pushed=await pushAllMovesToCloud();
+
+      if(pulled.reason==='not_authenticated'||pushed.reason==='not_authenticated'){
+        cloudSetStatus('⚠️ Inicia sesión para sincronizar.');
+        return;
+      }
+
+      const now=new Date().toLocaleString('es-CL');
+      cloudSetStatus(
+        `✅ Sincronizado · ${pulled.total} en nube · ${data.moves.length} locales · ${now}`,
+        true
+      );
+    }catch(e){
+      console.error('Cloud sync error:',e);
+      cloudSetStatus('⚠️ No se pudo completar la sincronización: '+(e.message||e));
+    }finally{
+      cloudSyncBusy=false;
+    }
+  }
+
+  async function syncAndConfirm(m,msgEl){
+    try{
+      const result=await syncMoveToCloud(m);
+      if(result.reason==='not_authenticated'){
+        syncMessage(msgEl,'⚠️ Guardado localmente. Inicia sesión en la nube para sincronizar.',false);
+        return;
+      }
+      syncMessage(msgEl,'☁️ Sincronizado en la nube.',true);
+      cloudSetStatus('☁️ Cambio sincronizado.',true);
+    }catch(e){
+      console.error('Cloud sync error:',e);
+      syncMessage(msgEl,'⚠️ Guardado localmente, pero no se pudo sincronizar: '+(e.message||e),false);
+    }
+  }
+
+  function syncMessage(el,text,good=false){
+    if(!el)return;
+    el.textContent=text;
+    el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
+  }
+
+  function sorted(){return [...data.moves].sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq)}
+function historySorted(){const rows=sorted();return historyOrder==='desc'?rows.reverse():rows;}
+function investmentVES(m){
+ const gross=(Number(m.clp)/Number(m.buy));
+ const net=Math.max(0,gross-Number(m.fee||0));
+ const grossV=net*Number(m.sell);
+ return grossV*(1-Number(m.bank||0)/100);
+}
+function replay(){
+ let s={cash:0,ves:0,cost:0,avg:0,usdt:0,usdtCost:0,usdtAvg:0,profit:0,received:0,invested:0,sent:0,icount:0,rcount:0,lastRate:0};
+ const out=[];
+ for(const m of sorted()){
+   m.result=0;
+   if(m.type==='opening'){
+     s.cash+=Number(m.clp)||0;s.ves+=Number(m.ves)||0;
+     // Initial VES have unknown cost in this version; kept separate from purchased inventory.
+   } else if(m.type==='capital'){
+     if((m.currency||'CLP')==='VES'){
+       s.ves+=Number(m.ves)||0;
+       // Los VES aportados como capital no tienen costo de compra registrado, igual que los VES iniciales.
+     }else{
+       s.cash+=Number(m.clp)||0;
+     }
+   } else if(m.type==='client'){
+     s.cash+=Number(m.clp)||0;s.received+=Number(m.clp)||0;
+   } else if(m.type==='other'){
+     s.cash+=Number(m.clp)||0;
+   } else if(m.type==='withdraw'){
+     if((m.currency||'CLP')==='VES'){
+       const ves=Number(m.ves)||0;
+       s.ves-=ves;
+       s.cost=Math.max(0,s.cost-(ves*s.avg));
+     }else{
+       s.cash-=Number(m.clp)||0;
+     }
+   } else if(m.type==='investment'){
+     // Legacy V3.4.4 investment remains fully compatible.
+     const ves=investmentVES(m);
+     s.cash-=Number(m.clp)||0;s.ves+=ves;s.cost+=Number(m.clp)||0;s.invested+=Number(m.clp)||0;s.icount++;
+   } else if(m.type==='usdt_purchase'){
+     const usdt=Number(m.usdt)||0;
+     s.cash-=Number(m.clp)||0;s.usdt+=usdt;s.usdtCost+=Number(m.clp)||0;
+     s.invested+=Number(m.clp)||0;s.icount++;
+   } else if(m.type==='usdt_sale'){
+     const usdtSold=Number(m.usdt)||0,fee=Number(m.fee)||0,totalUsdt=usdtSold+fee;
+     const costUsdt=totalUsdt*s.usdtAvg;
+     const grossVes=usdtSold*(Number(m.sell)||0);
+     const bankFee=grossVes*(Number(m.bank)||0)/100;
+     const netVes=Math.max(0,grossVes-bankFee);
+     s.usdt=Math.max(0,s.usdt-totalUsdt);s.usdtCost=Math.max(0,s.usdtCost-costUsdt);
+     s.ves+=netVes;s.cost+=costUsdt;
+     m.ves=netVes;m.bankFee=bankFee;m.usdtCost=costUsdt;m.grossVes=grossVes;
+   } else if(m.type==='remittance'){
+     const ves=Number(m.ves)||0;
+     const bankPct=Number(m.bankPct)||0;
+     const bankFee=ves*bankPct/100;
+     const totalVes=ves+bankFee;
+     const cost=totalVes*s.avg;
+     const staffPct=Number(m.staffPct)||0;
+     const staffFee=Number(m.staffFee)||((Number(m.clp)||0)*staffPct/100);
+     const grossProfit=Number(m.clp)-cost;
+     const profit=grossProfit-staffFee;
+     s.cash+=Number(m.clp)||0;s.received+=Number(m.clp)||0;s.ves-=totalVes;s.sent+=ves;s.cost=Math.max(0,s.cost-cost);s.profit+=profit;s.rcount++;s.lastRate=Number(m.rate)||0;
+     m.bankFee=bankFee;m.staffFee=staffFee;m.grossProfit=grossProfit;m.result=profit;
+   }
+   s.avg=s.ves>0?s.cost/s.ves:0;
+   s.usdtAvg=s.usdt>0?s.usdtCost/s.usdt:0;
+   out.push({m,state:{...s}});
+ }
+ return {s,out};
+}
+function dailyStats(){
+ const days={},rr=replay().out,byId={};
+ rr.forEach(x=>byId[x.m.id]=x.m);
+ for(const m of data.moves){
+   if(m.type!=='remittance')continue;
+   const day=m.date.slice(0,10);
+   if(!days[day])days[day]={profit:0,clp:0,rem:0,staffFee:0};
+   const r=byId[m.id];
+   days[day].profit+=Number(r?.result)||0;
+   days[day].clp+=Number(m.clp)||0;
+   days[day].rem++;
+   days[day].staffFee+=Number(r?.staffFee)||0;
+ }
+ for(const d of Object.values(days))d.pct=d.clp?d.profit/d.clp*100:0;
+ return days;
+}
+
+function dateKey(v){return String(v||'').slice(0,10)}
+function stateAtEndOfDay(day){
+ const rr=replay().out;
+ let snap={cash:0,ves:0,cost:0,avg:0,profit:0,received:0,invested:0,sent:0,icount:0,rcount:0,lastRate:0};
+ for(const x of rr){
+   if(dateKey(x.m.date)<=day) snap=x.state;
+ }
+ return snap;
+}
+function dayOperations(day){
+ const rows=sorted().filter(m=>dateKey(m.date)===day);
+ const rem=rows.filter(m=>m.type==='remittance');
+ const clients=new Set(rem.map(m=>String(m.ref||'').trim()).filter(Boolean));
+ let profit=0,clp=0,ves=0,bankFee=0,staffFee=0;
+ const rr=replay().out;
+ const byId={}; rr.forEach(x=>byId[x.m.id]=x.m);
+ rem.forEach(m=>{
+   profit+=Number(byId[m.id]?.result)||0;
+   clp+=Number(m.clp)||0;
+   ves+=Number(m.ves)||0;
+   bankFee+=Number(byId[m.id]?.bankFee)||0;
+   staffFee+=Number(byId[m.id]?.staffFee)||0;
+ });
+ return {
+   rows,rem,clients:clients.size||rem.length,profit,clp,ves,bankFee,staffFee,
+   investments:rows.filter(m=>m.type==='investment').length,
+   capital:rows.filter(m=>m.type==='capital').reduce((a,m)=>a+(Number(m.clp)||0),0)
+ };
+}
+function closeStatus(dc,dv){
+ const has=dc!==null&&dv!==null;
+ if(!has)return {level:'pending',label:'Pendiente'};
+ const absClp=Math.abs(dc),absVes=Math.abs(dv);
+ const square=absClp<=0.01&&absVes<=0.01;
+ const minor=absClp<=100&&absVes<=100;
+ if(square)return {level:'ok',label:'🟢 Día cuadrado'};
+ if(minor)return {level:'warn',label:'🟡 Diferencia menor'};
+ return {level:'error',label:'🔴 Diferencia a revisar'};
+}
+function closePreview(){
+ const day=$('close_date').value;if(!day)return;
+ const s=stateAtEndOfDay(day),d=dayOperations(day);
+ $('close_sys_clp').textContent=money(s.cash)+' CLP';
+ $('close_sys_ves').textContent=money(s.ves)+' VES';
+ $('close_profit').textContent=money(d.profit)+' CLP';
+ $('close_rem').textContent=String(d.rem.length);
+ $('close_clients').textContent=String(d.clients);
+ $('close_clp_day').textContent=money(d.clp)+' CLP';
+ $('close_ves_day').textContent=money(d.ves)+' VES';
+ $('close_bank_day').textContent=money(d.bankFee)+' VES';
+ $('close_staff_day').textContent=money(d.staffFee||0)+' CLP';
+
+ const realClp=$('close_real_clp').value===''?null:Number($('close_real_clp').value);
+ const realVes=$('close_real_ves').value===''?null:Number($('close_real_ves').value);
+ const dc=realClp===null?null:realClp-s.cash;
+ const dv=realVes===null?null:realVes-s.ves;
+ const fmtDiff=(v,u)=>v===null?'—':(v>=0?'+':'')+money(v)+' '+u;
+ $('close_diff_clp').textContent=fmtDiff(dc,'CLP');
+ $('close_diff_ves').textContent=fmtDiff(dv,'VES');
+
+ const status=closeStatus(dc,dv);
+ const st=$('close_status');
+ st.className='rvalue '+(status.level==='pending'?'vz-neutral':status.level==='ok'?'vz-ok':status.level==='warn'?'vz-close-status-warn':'vz-error');
+ st.textContent=status.label;
+ return {day,s,d,realClp,realVes,dc,dv,ok:status.level==='ok',status:status.level,statusLabel:status.label};
+}
+function renderCloseHistory(){
+ const body=$('close_history_body');if(!body)return;
+ const rows=[...(data.closures||[])].sort((a,b)=>b.date.localeCompare(a.date));
+ if(!rows.length){body.innerHTML='<tr><td colspan="7" class="muted">Aún no hay cierres.</td></tr>';return}
+ body.innerHTML=rows.map(c=>{
+   const status=closeStatus(Number(c.diffClp)||0,Number(c.diffVes)||0);
+   const cls=status.level==='ok'?'ok':status.level==='warn'?'warn':'error';
+   const label=status.level==='ok'?'🟢 Cuadrado':status.level==='warn'?'🟡 Diferencia menor':'🔴 Diferencia a revisar';
+   return `<tr><td>${esc(c.date)}</td><td>${money(c.realClp)} CLP</td><td class="${Math.abs(Number(c.diffClp)||0)<=0.01?'vz-ok':Math.abs(Number(c.diffClp)||0)<=100?'vz-close-status-warn':'vz-error'}">${(Number(c.diffClp)||0)>=0?'+':''}${money(c.diffClp)}</td><td>${money(c.realVes)} VES</td><td class="${Math.abs(Number(c.diffVes)||0)<=0.01?'vz-ok':Math.abs(Number(c.diffVes)||0)<=100?'vz-close-status-warn':'vz-error'}">${(Number(c.diffVes)||0)>=0?'+':''}${money(c.diffVes)}</td><td>${money(c.profit)} CLP</td><td><span class="vz-close-pill ${cls}">${label}</span></td></tr>`;
+ }).join('');
+}
+$('close_date').value=todayLocal().slice(0,10);
+$('close_time').value=todayLocal().slice(11,16);
+$('close_preview').onclick=()=>{closePreview()};
+$('close_real_clp').addEventListener('input',closePreview);
+$('close_real_ves').addEventListener('input',closePreview);
+$('close_date').addEventListener('change',()=>{
+ const c=(data.closures||[]).find(x=>x.date===$('close_date').value);
+ if(c){$('close_real_clp').value=c.realClp;$('close_real_ves').value=c.realVes}
+ closePreview();
+});
+$('close_save').onclick=()=>{
+ const x=closePreview();
+ if(!x||x.realClp===null||x.realVes===null){$('close_msg').textContent='⚠️ Introduce el saldo real CLP y VES antes de cerrar el día.';return}
+ const existing=(data.closures||[]).find(c=>c.date===x.day);
+ if(existing&&!confirm('Ya existe un cierre para este día. ¿Quieres reemplazarlo con la conciliación actual?'))return;
+ const snapshot={
+   date:x.day,closedAt:new Date().toISOString(),
+   realClp:x.realClp,realVes:x.realVes,
+   systemClp:x.s.cash,systemVes:x.s.ves,
+   diffClp:x.dc,diffVes:x.dv,status:x.status,statusLabel:x.statusLabel,profit:x.d.profit,
+   remittances:x.d.rem.length,clients:x.d.clients,clpProcessed:x.d.clp,
+   vesDelivered:x.d.ves,bankFeesVES:x.d.bankFee
+ };
+ data.closures=(data.closures||[]).filter(c=>c.date!==x.day);data.closures.push(snapshot);save();renderCloseHistory();
+ $('close_msg').textContent=x.status==='ok'?'✅ Día cerrado y cuadrado.':x.status==='warn'?'🟡 Día cerrado con diferencia menor. Quedó guardado para auditoría.':'🔴 Día cerrado con diferencia a revisar. Quedó guardado para auditoría.';
+};
+renderCloseHistory();
+
+function render(){
+ const {s}=replay();
+ $('j_cash').textContent=money(s.cash)+' CLP';$('j_usdt').textContent=num4(s.usdt)+' USDT';$('j_usdt_avg').textContent='Costo: '+money(s.usdtAvg)+' CLP/USDT';$('j_ves').textContent=money(s.ves)+' VES';$('j_avg').textContent=rateFmt(s.avg)+' CLP/VES';$('j_profit').textContent=money(s.profit)+' CLP';
+ $('j_received').textContent=money(s.received)+' CLP';$('j_invested').textContent=money(s.invested)+' CLP';$('j_sent').textContent=money(s.sent)+' VES';$('j_icount').textContent=s.icount;$('j_rcount').textContent=s.rcount;$('j_cost').textContent=money(s.cost)+' CLP';$('j_usdt_detail').textContent=num4(s.usdt)+' USDT';$('j_usdt_cost').textContent=money(s.usdtCost)+' CLP';
+ const val=s.lastRate?s.ves/s.lastRate:0;$('j_value').textContent=money(val)+' CLP';$('j_potential').textContent=money(val-s.cost)+' CLP';
+ const days=dailyStats();renderHistory();renderCalendar(days);previewInvestment();previewRemittance();renderCloseHistory();
+ const opening=data.moves.find(m=>m.type==='opening');$('startMsg').textContent=opening?'Saldo inicial establecido el '+opening.date+'.':'Aún no has establecido el saldo inicial.';
+}
+function renderHistory(){
+ const rows=historySorted();if(!rows.length){$('history_body').innerHTML='<tr><td colspan="8" class="muted">No hay movimientos.</td></tr>';return}
+ const typeMap={opening:'Saldo inicial',capital:'Aporte de capital',client:'Ingreso cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa'};
+ $('history_body').innerHTML=rows.map(m=>{
+   const type=typeMap[m.type]||m.type;
+   let result='—';
+   if(m.type==='remittance')result=money(m.result)+' CLP';
+   else if(m.type==='usdt_purchase')result='+'+num4(m.usdt||0)+' USDT';
+   else if(m.type==='usdt_sale')result=money(m.usdtCost||0)+' CLP';
+   const isVesWithdraw=m.type==='withdraw'&&(m.currency||'CLP')==='VES';
+   const clp=m.type==='withdraw'&&!isVesWithdraw?-Number(m.clp):Number(m.clp)||0;
+   const ves=isVesWithdraw?-Number(m.ves):(m.ves?Number(m.ves):0);
+   const displayVes=m.type==='usdt_sale'?(Number(m.ves)||0):ves;
+   const rate=m.type==='usdt_sale'?(Number(m.sell)||0):Number(m.rate)||0;
+   return `<tr><td>${esc(m.date.replace('T',' '))}</td><td>${type}${isVesWithdraw?' VES':''}</td><td>${clp?money(clp):'—'}</td><td>${displayVes?money(displayVes):'—'}</td><td>${rate?rateFmt(rate):'—'}</td><td>${result}</td><td>${esc(m.ref||'')}</td><td><button class="btn small" onclick="editMove('${m.id}')">✏️</button> <button class="btn small danger" onclick="deleteMove('${m.id}')">🗑️</button></td></tr>`;
+ }).join('');
+}
+function renderCalendar(days){
+ const y=calDate.getFullYear(),mo=calDate.getMonth();
+ $('monthTitle').textContent=new Intl.DateTimeFormat('es-CL',{month:'long',year:'numeric'}).format(calDate);
+ const first=new Date(y,mo,1), last=new Date(y,mo+1,0);let start=(first.getDay()+6)%7;
+ let html=['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'].map(x=>`<div class="dow">${x}</div>`).join('');
+ for(let i=0;i<start;i++)html+='<div class="day empty"></div>';
+ for(let d=1;d<=last.getDate();d++){
+   const key=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,x=days[key];
+   let cls='day'+(x?(x.profit>=0?' has-profit':' has-loss'):'');
+   html+=`<div class="${cls}" onclick="showDay('${key}')"><div class="num">${d}</div>${x?`<div class="p">${money(x.profit)} CLP</div><div class="pct">${x.pct.toFixed(2)}%</div>`:''}</div>`;
+ }
+ $('calendar').innerHTML=html;
+}
+window.showDay=function(key){
+ const d=dailyStats()[key];
+ if(!d){$('dayDetail').innerHTML=`<h2>${key}</h2><p class="muted">No hay remesas registradas este día.</p>`;return}
+ $('dayDetail').innerHTML=`<h2>Resumen · ${key}</h2><div class="summary"><div class="metric"><div class="label">BENEFICIO NETO</div><div class="big">${money(d.profit)} CLP</div></div><div class="metric"><div class="label">RENTABILIDAD DEL DÍA</div><div class="big">${d.pct.toFixed(2)}%</div><small>Beneficio ÷ CLP recibidos de clientes</small></div></div><p class="muted" style="margin-bottom:0">Remesas: ${d.rem} · CLP procesados: ${money(d.clp)}</p>`;
+};
+window.editMove=function(id){
+ const m=data.moves.find(x=>x.id===id);if(!m)return;
+ if(m.type==='opening'){alert('Para modificar el saldo inicial, usa “Borrar todo el Journal” y vuelve a establecerlo.');return}
+ const labels={capital:'Aporte de capital',client:'Ingreso de cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión (legacy)',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa'};
+ let body=`<input type="hidden" id="edit_id" value="${esc(id)}"><label>Fecha/hora<input id="e_date" type="datetime-local" value="${esc(m.date)}"></label><label style="margin-top:12px">Tipo<select id="e_type">${Object.entries(labels).map(([v,t])=>`<option value="${v}" ${m.type===v?'selected':''}>${t}</option>`).join('')}</select></label><div class="grid" style="margin-top:12px"><label>CLP<input id="e_clp" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>VES<input id="e_ves" type="number" value="${Number(m.ves)||0}" step="0.01"></label></div><label style="margin-top:12px">Moneda<select id="e_currency"><option value="CLP" ${((m.currency||'CLP')==='CLP')?'selected':''}>CLP</option><option value="VES" ${((m.currency||'CLP')==='VES')?'selected':''}>VES</option></select></label><label style="margin-top:12px">Tasa pública<input id="e_rate" type="number" value="${Number(m.rate)||0}" step="0.000001"></label><label style="margin-top:12px">Referencia<input id="e_ref" type="text" value="${esc(m.ref||'')}"></label>`;
+ if(m.type==='investment')body+=`<div class="grid" style="margin-top:12px"><label>Compra Binance<input id="e_buy" type="number" value="${m.buy}" step="0.01"></label><label>Venta Binance<input id="e_sell" type="number" value="${m.sell}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee" type="number" value="${m.fee}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank" type="number" value="${m.bank}" step="0.01"></label></div>`;
+  if(m.type==='usdt_purchase')body+=`<div class="grid" style="margin-top:12px"><label>CLP invertidos<input id="e_clp_purchase" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>Compra Binance CLP/USDT<input id="e_buy_purchase" type="number" value="${Number(m.buy)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_purchase" type="number" value="${Number(m.fee)||0}" step="0.0001"></label></div>`;
+  if(m.type==='usdt_sale')body+=`<div class="grid" style="margin-top:12px"><label>USDT vendidos<input id="e_usdt_sale" type="number" value="${Number(m.usdt)||0}" step="0.01"></label><label>Venta Binance VES/USDT<input id="e_sell_sale" type="number" value="${Number(m.sell)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_sale" type="number" value="${Number(m.fee)||0}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank_sale" type="number" value="${Number(m.bank)||0}" step="0.01"></label></div>`;
+   if(m.type==='remittance')body+=`<label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="e_bank_charge" type="checkbox" ${Number(m.bankPct||0)>0?'checked':''} class="vz-auto-time" style="width:auto;margin:0">Genera comisión bancaria (0,30%)</label><div class="vz-commission-note">Desmárcalo si fue una transferencia dentro del mismo banco.</div><label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="e_staff_charge" type="checkbox" ${Number(m.staffPct||0)>0?'checked':''} class="vz-auto-time" style="width:auto;margin:0">Paga comisión a colaborador</label><div class="grid" style="margin-top:10px"><label>Colaborador<input id="e_staff_name" type="text" value="${esc(m.staffName||'Yoselin Mendez')}"></label><label>Comisión colaborador (%)<input id="e_staff_pct" type="number" value="${Number(m.staffPct)||2}" step="0.01" min="0"></label></div>`;
+ $('modalBody').innerHTML=body+`<div class="actions"><button class="btn primary" id="saveEdit">Guardar cambios</button><button class="btn" id="cancelEdit">Cancelar</button></div><p class="note">Después de guardar, todos los saldos y ganancias se recalculan en orden cronológico.</p>`;
+ $('modalBack').classList.add('show');
+ $('cancelEdit').onclick=()=>closeModal();
+ $('saveEdit').onclick=()=>{
+   m.date=$('e_date').value;m.type=$('e_type').value;m.clp=Number($('e_clp').value)||0;m.ves=Number($('e_ves').value)||0;m.rate=Number($('e_rate').value)||0;m.ref=$('e_ref').value;
+   if(m.type==='withdraw'||m.type==='capital'){m.currency=$('e_currency').value;if(m.currency==='VES'){m.clp=0}else{m.ves=0}}
+   if(m.type==='investment'){m.buy=Number($('e_buy').value)||0;m.sell=Number($('e_sell').value)||0;m.fee=Number($('e_fee').value)||0;m.bank=Number($('e_bank').value)||0}
+   if(m.type==='usdt_purchase'){m.clp=Number($('e_clp_purchase').value)||0;m.buy=Number($('e_buy_purchase').value)||0;m.fee=Number($('e_fee_purchase').value)||0;m.usdt=m.buy>0?Math.max(0,m.clp/m.buy-m.fee):0}
+   if(m.type==='usdt_sale'){m.usdt=Number($('e_usdt_sale').value)||0;m.sell=Number($('e_sell_sale').value)||0;m.fee=Number($('e_fee_sale').value)||0;m.bank=Number($('e_bank_sale').value)||0}
+   if(m.type==='remittance'){
+     m.bankPct=$('e_bank_charge')&&$('e_bank_charge').checked?0.30:0;
+     const staffOn=$('e_staff_charge')&&$('e_staff_charge').checked;
+     m.staffPct=staffOn?(Number($('e_staff_pct').value)||0):0;
+     m.staffName=staffOn?String($('e_staff_name').value||'').trim():'';
+     m.staffFee=staffOn?m.clp*m.staffPct/100:0;
+   }
+   save();closeModal();render();syncAndConfirm(m,null);
+ };
+}
+async function syncAndConfirmDelete(m){
+  try{
+    const result=await deleteMoveFromCloud(m);
+    if(result.reason==='not_authenticated') return;
+    console.log('☁️ Movimiento eliminado de Supabase:',m.id);
+  }catch(e){
+    console.error('Cloud delete error:',e);
+  }
+}
+window.deleteMove=function(id){
+ const m=data.moves.find(x=>x.id===id);if(!m)return;
+ if(!confirm('¿Eliminar este movimiento? El Journal se recalculará completamente.'))return;
+ data.moves=data.moves.filter(x=>x.id!==id);save();render();
+ syncAndConfirmDelete(m);
+}
+function closeModal(){$('modalBack').classList.remove('show')}$('closeModal').onclick=closeModal;
+$('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
+
+function syncInvestmentMode(){
+ const sale=$('i_operation').value==='sale';
+ $('i_purchase_fields').style.display=sale?'none':'grid';$('i_sale_fields').style.display=sale?'grid':'none';
+ $('i_purchase_preview').style.display=sale?'none':'block';$('i_sale_preview').style.display=sale?'block':'none';
+ $('i_add').textContent=sale?'Registrar venta USDT':'Registrar compra USDT';previewInvestment();
+}
+function previewInvestment(){
+ const sale=$('i_operation')&&$('i_operation').value==='sale',s=replay().s;
+ if(sale){
+   const usdt=Number($('i_usdt_sale').value)||0,sell=Number($('i_sell').value)||0,fee=Number($('i_sale_fee').value)||0,bank=Number($('i_bank').value)||0;
+   const grossV=usdt*sell,netV=Math.max(0,grossV*(1-bank/100)),totalUsdt=usdt+fee,cost=totalUsdt*s.usdtAvg;
+   $('i_usdt_available').textContent=num4(s.usdt);$('i_sale_result').textContent=money(netV);$('i_sale_cost').textContent=rateFmt(netV?cost/netV:0);
+   $('i_check').textContent=totalUsdt<=s.usdt?'✓ USDT suficiente: '+num4(s.usdt)+' disponibles.':'⚠️ Faltan '+num4(totalUsdt-s.usdt)+' USDT.';return;
+ }
+ const clp=Number($('i_clp').value)||0,buy=Number($('i_buy').value)||0,fee=Number($('i_fee').value)||0;
+ if(!clp||!buy){$('i_result').textContent='0';$('i_cost').textContent='0,00';$('i_check').textContent='';return}
+ const usdt=Math.max(0,clp/buy-fee);$('i_result').textContent=num4(usdt);$('i_cost').textContent=money(usdt?clp/usdt:0);
+ $('i_check').textContent=clp<=s.cash?'✓ Caja suficiente: '+money(s.cash)+' CLP disponibles.':'⚠️ Faltan '+money(clp-s.cash)+' CLP.';
+}
+function previewRemittance(){
+ const s=replay().s,clp=Number($('r_clp').value)||0,ves=Number($('r_ves').value)||0;
+ const bankPct=$('r_bank_charge')&&$('r_bank_charge').checked?0.30:0;
+ const bankFee=ves*bankPct/100,totalVes=ves+bankFee,cost=totalVes*s.avg;
+ const staffOn=$('r_staff_charge')&&$('r_staff_charge').checked;
+ const staffPct=staffOn?(Number($('r_staff_pct').value)||0):0;
+ const staffFee=clp*staffPct/100;
+ const profit=clp-cost-staffFee;
+ $('r_cost').textContent=money(cost)+' CLP';$('r_profit').textContent=money(profit)+' CLP';$('r_pct').textContent=(clp?((profit/clp)*100).toFixed(2):'0.00')+'%';
+ $('r_bank_fee').textContent=money(bankFee)+' VES';
+ if($('r_staff_metric'))$('r_staff_metric').style.display=staffOn?'block':'none';
+ if($('r_staff_fee'))$('r_staff_fee').textContent=money(staffFee)+' CLP';
+}
+['i_operation','i_clp','i_buy','i_fee','i_usdt_sale','i_sell','i_sale_fee','i_bank'].forEach(id=>{if($(id))$(id).addEventListener('input',previewInvestment)});
+$('i_operation').addEventListener('change',syncInvestmentMode);
+['r_clp','r_rate','r_ves','r_bank_charge'].forEach(id=>$(id).addEventListener('input',previewRemittance));
+$('r_bank_charge').addEventListener('change',previewRemittance);
+$('r_staff_charge').addEventListener('change',()=>{
+ const on=$('r_staff_charge').checked;
+ $('r_staff_fields').style.display=on?'grid':'none';
+ previewRemittance();
+});
+['r_staff_pct','r_staff_name'].forEach(id=>$(id).addEventListener('input',previewRemittance));
+
+$('startBtn').onclick=()=>{
+ if(data.moves.some(m=>m.type==='opening')){alert('Ya existe un saldo inicial. Si quieres cambiarlo, elimina el Journal y vuelve a empezar.');return}
+ const cash=Number($('open_cash').value)||0,ves=Number($('open_ves').value)||0;
+ const id='m'+(++data.seq);data.moves.push({id,seq:data.seq,date:todayLocal(),type:'opening',clp:cash,ves:ves,ref:'Inicio'});
+ data.started=true;save();render();syncAndConfirm(data.moves[data.moves.length-1],$('startMsg'));
+};
+$('clearBtn').onclick=()=>{
+ if(confirm('Esto borrará todos los movimientos y la bitácora de prueba. ¿Continuar?')){data={moves:[],seq:0,started:false,openingId:null};save();render()}
+};
+$('i_add').onclick=()=>{
+ if(!data.started){$('i_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
+ const operation=$('i_operation').value,date=($('i_date_auto')&&$('i_date_auto').checked?todayLocal():$('i_date').value),s=replay().s;
+ if(operation==='purchase'){
+   const clp=Number($('i_clp').value)||0,buy=Number($('i_buy').value)||0,fee=Number($('i_fee').value)||0;
+   if(!clp||!buy){$('i_msg').textContent='Completa CLP, compra Binance y comisión.';return}
+   if(clp>s.cash){$('i_msg').textContent='⚠️ Caja CLP insuficiente. Disponibles: '+money(s.cash)+' CLP.';return}
+   const usdt=Math.max(0,clp/buy-fee);if(usdt<=0){$('i_msg').textContent='⚠️ La compra no genera USDT disponibles.';return}
+   const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_purchase',clp,usdt,buy,fee,ref:'Binance'};
+   data.moves.push(newMove);save();$('i_msg').textContent='✅ Compra de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
+ }else{
+   const usdt=Number($('i_usdt_sale').value)||0,sell=Number($('i_sell').value)||0,fee=Number($('i_sale_fee').value)||0,bank=Number($('i_bank').value)||0,totalUsdt=usdt+fee;
+   if(!usdt||!sell){$('i_msg').textContent='Completa USDT, venta Binance y comisión.';return}
+   if(totalUsdt>s.usdt+1e-9){$('i_msg').textContent='⚠️ USDT insuficiente. Disponibles: '+num4(s.usdt)+' USDT.';return}
+   const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_sale',usdt,sell,fee,bank,ref:'Binance'};
+   data.moves.push(newMove);save();$('i_msg').textContent='✅ Venta de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
+ }
+};
+
+$('r_add').onclick=()=>{
+ if(!data.started){$('r_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
+ const clp=Number($('r_clp').value)||0,ves=Number($('r_ves').value)||0,rr=Number($('r_rate').value)||0,s=replay().s;
+ if(!clp||!ves||!rr){$('r_msg').textContent='Completa CLP, VES y tasa.';return}
+ if(ves>s.ves){$('r_msg').textContent='⚠️ Inventario VES insuficiente. Disponibles: '+money(s.ves)+' VES.';return}
+ const staffOn=$('r_staff_charge')&&$('r_staff_charge').checked;
+ const staffPct=staffOn?(Number($('r_staff_pct').value)||0):0;
+ const staffName=staffOn?String($('r_staff_name').value||'').trim():'';
+ const staffFee=staffOn?clp*staffPct/100:0;
+ const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('r_date_auto')&&$('r_date_auto').checked?todayLocal():$('r_date').value),type:'remittance',clp,ves,rate:rr,ref:$('r_ref').value,bankPct:($('r_bank_charge').checked?0.30:0),staffPct,staffName,staffFee};data.moves.push(newMove);save();$('r_msg').textContent='✅ Remesa registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('r_msg'));
+};
+$('cf_add').onclick=()=>{
+ if(!data.started){$('cf_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
+ const type=$('cf_type').value,currency=$('cf_currency').value;
+ const clp=Number($('cf_clp').value)||0,ves=Number($('cf_ves').value)||0;
+ if((currency==='CLP'&&!clp)||(currency==='VES'&&!ves)){$('cf_msg').textContent='Introduce un monto válido.';return}
+ const s=replay().s;
+ if(type!=='withdraw'&&type!=='capital'&&currency==='VES'){$('cf_msg').textContent='⚠️ Los ingresos de VES solo están habilitados aquí para aportes de capital o retiros. Para incorporar VES mediante una compra, usa Inversión.';return}
+ if(type==='withdraw'&&currency==='CLP'&&clp>s.cash){$('cf_msg').textContent='⚠️ No puedes retirar más de la caja disponible.';return}
+ if(type==='withdraw'&&currency==='VES'&&ves>s.ves){$('cf_msg').textContent='⚠️ No puedes retirar más VES que el inventario disponible.';return}
+ const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('cf_date_auto')&&$('cf_date_auto').checked?todayLocal():$('cf_date').value),type,clp:currency==='CLP'?clp:0,ves:currency==='VES'?ves:0,currency,ref:$('cf_ref').value};
+ data.moves.push(newMove);
+ save();$('cf_msg').textContent='✅ Movimiento registrado localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('cf_msg'));
+};
+
+function calcV2(){
+ const cap=+$('c_cap').value||0,bank=(+$('c_bank').value||0)/100,buy=+$('c_buy').value||0,sell=+$('c_sell').value||0,fee=+$('c_fee').value||0,target=(+$('c_target').value||0)/100,pub=+$('c_public').value||0;
+ if(!cap||!buy||!sell||!pub)return;
+ const gross=cap/buy,net=Math.max(0,gross-fee),grossV=net*sell,bankCost=grossV*bank,avail=grossV-bankCost;
+ const day=$('c_discount').checked?avail*(1-target)/cap:avail/cap,rec=cap*pub,pv=avail-rec,pclp=(pv/sell)*buy,pct=pclp/cap*100,diff=(+$('c_target').value||0)-pct;
+ $('c_day').textContent=rateFmt(day);$('c_rec').textContent=money(rec);$('c_pct').textContent=pct.toFixed(2)+' %';$('c_profit').textContent=money(pclp)+' CLP';
+ $('c_cap_out').textContent=money(cap);$('c_gross').textContent=num4(gross);$('c_net').textContent=num4(net);$('c_grossves').textContent=money(grossV);$('c_bankcost').textContent=money(bankCost);$('c_avail').textContent=money(avail);
+ $('c_public_out').textContent=rateFmt(pub);$('c_rec2').textContent=money(rec);$('c_profitves').textContent=money(pv);$('c_profitclp').textContent=money(pclp);$('c_diff').textContent=(diff>=0?'+':'')+diff.toFixed(2)+' pp';$('c_effective').textContent=pct.toFixed(2)+' %';
+ $('c_warning').textContent=pv<0?'⚠️ La tasa pública genera pérdida.':pub>day?'La tasa pública está por encima de la tasa del día: ganas menos que tu objetivo.':pub<day?'La tasa pública está por debajo de la tasa del día: ganas más que tu objetivo.':'La tasa pública coincide con la tasa del día: alcanzas exactamente tu objetivo.';
+}
+['c_cap','c_bank','c_buy','c_sell','c_fee','c_target','c_public','c_discount'].forEach(id=>$(id).addEventListener('input',calcV2));
+$('calcBtn').onclick=calcV2;calcV2();
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active')});
+$('historyNewest').onclick=()=>{historyOrder='desc';$('historyNewest').classList.add('active');$('historyOldest').classList.remove('active');renderHistory()};
+$('historyOldest').onclick=()=>{historyOrder='asc';$('historyOldest').classList.add('active');$('historyNewest').classList.remove('active');renderHistory()};
+$('prevMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalendar(dailyStats())};
+$('nextMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar(dailyStats())};
+
+render();
+
+// Vzla Coin Cloud — autenticación + sincronización definitiva.
+(function(){
+  const emailEl=document.getElementById('cloudEmail');
+  const passEl=document.getElementById('cloudPassword');
+  const statusEl=document.getElementById('cloudStatus');
+  const msgEl=document.getElementById('cloudMessage');
+  const syncBtn=document.getElementById('cloudSync');
+  const signupBtn=document.getElementById('cloudSignup');
+  const loginBtn=document.getElementById('cloudLogin');
+  const logoutBtn=document.getElementById('cloudLogout');
+  if(!emailEl||!passEl||!statusEl||!msgEl||!signupBtn||!syncBtn) return;
+
+  const msg=(text,good=false)=>{
+    msgEl.textContent=text;
+    msgEl.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
+  };
+
+  const setLogged=(user)=>{
+    const on=!!user;
+    statusEl.textContent=on?'🟢 Conectado · '+(user.email||'usuario'):'⚪ Sin iniciar sesión';
+    statusEl.style.color=on?'#48e0a0':'var(--vz-muted,#9292a5)';
+    syncBtn.disabled=!on;
+    logoutBtn.disabled=!on;
+    signupBtn.disabled=on;
+    loginBtn.disabled=on;
+    if(!on) cloudSetStatus('⚪ Sin sesión en la nube.');
+  };
+
+  signupBtn.addEventListener('click',async()=>{
+    const email=emailEl.value.trim(), password=passEl.value;
+    if(!email||password.length<6){
+      msg('Introduce un correo y una contraseña de al menos 6 caracteres.');
+      return;
+    }
+    signupBtn.disabled=true;
+    msg('Creando cuenta…');
+    const {data,error}=await supabaseClient.auth.signUp({email,password});
+    if(error){
+      msg('❌ '+error.message);
+      signupBtn.disabled=false;
+      return;
+    }
+    if(data.session){
+      setLogged(data.user);
+      msg('✅ Cuenta creada y sesión iniciada. Sincronizando…',true);
+      await cloudSyncAll();
+    }else{
+      msg('✅ Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.',true);
+      signupBtn.disabled=false;
+    }
+  });
+
+  loginBtn.addEventListener('click',async()=>{
+    const email=emailEl.value.trim(), password=passEl.value;
+    if(!email||!password){
+      msg('Introduce correo y contraseña.');
+      return;
+    }
+    loginBtn.disabled=true;
+    msg('Iniciando sesión…');
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error){
+      msg('❌ '+error.message);
+      loginBtn.disabled=false;
+      return;
+    }
+    setLogged(data.user);
+    msg('✅ Sesión iniciada. Sincronizando Journal…',true);
+    await cloudSyncAll();
+  });
+
+  syncBtn.addEventListener('click',async()=>{
+    msg('Sincronizando Journal…');
+    await cloudSyncAll();
+    msg('✅ Sincronización completada.',true);
+  });
+
+  logoutBtn.addEventListener('click',async()=>{
+    await supabaseClient.auth.signOut();
+    setLogged(null);
+    msg('Sesión cerrada. Tus datos locales siguen intactos.');
+  });
+
+  supabaseClient.auth.onAuthStateChange(async(_event,session)=>{
+    setLogged(session?.user||null);
+    if(session?.user) setTimeout(()=>cloudSyncAll(),0);
+  });
+
+  supabaseClient.auth.getUser().then(async({data})=>{
+    setLogged(data?.user||null);
+    if(data?.user) await cloudSyncAll();
+  });
+})();
+
+// Vzla Coin visual theme — does not alter V3.2 calculations or Journal logic.
+(function(){
+  const btn=document.getElementById('vzThemeToggle');
+  const icon=document.getElementById('vzThemeIcon');
+  const text=document.getElementById('vzThemeText');
+  if(!btn) return;
+  let light=false;
+  function apply(){
+    document.body.classList.toggle('vz-light',light);
+    icon.textContent=light?'☀':'☾';
+    text.textContent=light?'Claro':'Oscuro';
+  }
+  btn.addEventListener('click',()=>{light=!light;apply();});
+  apply();
+})();
+
+// Vzla Coin backup/restore — exports/imports the complete Journal data.
+(function(){
+  const exportBtn=document.getElementById('vzExport');
+  const importBtn=document.getElementById('vzImport');
+  const fileInput=document.getElementById('vzImportFile');
+  if(!exportBtn||!importBtn||!fileInput) return;
+
+  exportBtn.addEventListener('click',()=>{
+    try{
+      const raw=localStorage.getItem('remesas_v32');
+      if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
+      const payload={
+        app:'Vzla Coin · Sistema de Remesas',
+        version:'V3.5.1',
+        exportedAt:new Date().toISOString(),
+        data:JSON.parse(raw)
+      };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      const d=new Date();
+      const stamp=d.toISOString().slice(0,10);
+      a.href=url;
+      a.download='VzlaCoin_Journal_Backup_'+stamp+'.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      alert('✅ Respaldo descargado correctamente.');
+    }catch(e){
+      alert('No fue posible crear el respaldo.');
+    }
+  });
+
+  importBtn.addEventListener('click',()=>fileInput.click());
+
+  fileInput.addEventListener('change',()=>{
+    const file=fileInput.files&&fileInput.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const payload=JSON.parse(reader.result);
+        const candidate=payload && payload.data ? payload.data : payload;
+        if(!candidate || !Array.isArray(candidate.moves)){
+          throw new Error('Formato no reconocido');
+        }
+        if(!confirm('⚠️ Restaurar este respaldo reemplazará los datos actuales del Journal en este navegador. ¿Quieres continuar?')) return;
+        localStorage.setItem('remesas_v32',JSON.stringify(candidate));
+        alert('✅ Respaldo restaurado. La página se recargará.');
+        location.reload();
+      }catch(e){
+        alert('❌ El archivo no parece ser un respaldo válido de Vzla Coin.');
+      }finally{
+        fileInput.value='';
+      }
+    };
+    reader.readAsText(file);
+  });
+})();
+
+// Vzla Coin UX fix: success/error messages are transient.
+// Registration confirmations disappear automatically after 3 seconds,
+// so the next operation starts with a clean status area.
+(function(){
+  const timers = {};
+  function transient(id, text, ms=3000){
+    const el=document.getElementById(id);
+    if(!el) return;
+    if(timers[id]) clearTimeout(timers[id]);
+    el.textContent=text;
+    timers[id]=setTimeout(()=>{
+      el.textContent='';
+      delete timers[id];
+    },ms);
+  }
+
+  // Wrap the existing registration button handlers by observing their
+  // status text after the original V3.2 logic runs.
+  ['r_msg','i_msg','cf_msg'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    const observer=new MutationObserver(()=>{
+      const text=el.textContent.trim();
+      if(!text) return;
+      // Keep validation errors visible briefly too, but successful
+      // registration confirmations are especially short-lived.
+      const ms=text.includes('registr') ? 3000 : 4000;
+      if(timers[id]) clearTimeout(timers[id]);
+      timers[id]=setTimeout(()=>{
+        el.textContent='';
+        delete timers[id];
+      },ms);
+    });
+    observer.observe(el,{childList:true,characterData:true,subtree:true});
+  });
+})();
+
+// V3.3 monthly dashboard. Read-only aggregation from existing remittance movements.
+(function(){
+  function monthKeyFromDate(date){ return String(date||'').slice(0,7); }
+
+  function monthlyStats(){
+    const result={};
+    const replayResult=(typeof replay==='function') ? replay() : {out:[]};
+    const profitById={};
+    (replayResult.out||[]).forEach(x=>{ if(x&&x.m) profitById[x.m.id]=Number(x.m.result)||0; });
+
+    (data.moves||[]).forEach(m=>{
+      if(!m || m.type!=='remittance') return;
+      const key=monthKeyFromDate(m.date);
+      if(!key) return;
+      if(!result[key]) result[key]={profit:0,clp:0,ves:0,rem:0,staffFee:0,clients:new Set()};
+      const r=result[key];
+      r.profit += profitById[m.id] || 0;
+      r.staffFee += Number(m.staffFee)||0;
+      r.clp += Number(m.clp)||0;
+      r.ves += Number(m.ves)||0;
+      r.rem += 1;
+      const ref=String(m.ref||'').trim();
+      if(ref) r.clients.add(ref);
+    });
+
+    Object.keys(result).forEach(k=>{
+      const r=result[k];
+      // If a reference was not supplied, count the remittance as one client/operation.
+      r.clientsCount=r.clients.size ? r.clients.size : r.rem;
+      r.pct=r.clp ? (r.profit/r.clp)*100 : 0;
+      r.avgProfit=r.rem ? r.profit/r.rem : 0;
+    });
+    return result;
+  }
+
+  function selectedMonthKey(){
+    if(typeof calDate==='undefined') return '';
+    return calDate.getFullYear()+'-'+String(calDate.getMonth()+1).padStart(2,'0');
+  }
+
+  function renderMonthlyDashboard(){
+    const all=monthlyStats();
+    const key=selectedMonthKey();
+    const cur=all[key]||{profit:0,clp:0,ves:0,rem:0,staffFee:0,clientsCount:0,pct:0,avgProfit:0};
+
+    const profitEl=document.getElementById('md_profit');
+    const pctEl=document.getElementById('md_pct');
+    const clpEl=document.getElementById('md_clp');
+    const remEl=document.getElementById('md_rem');
+    const clientsEl=document.getElementById('md_clients');
+    const vesEl=document.getElementById('md_ves');
+    const avgEl=document.getElementById('md_avg_profit');
+    const growthEl=document.getElementById('md_growth');
+    if(!profitEl) return;
+
+    profitEl.textContent=money(cur.profit)+' CLP';
+    pctEl.textContent=cur.pct.toFixed(2)+'%';
+    clpEl.textContent=money(cur.clp)+' CLP';
+    remEl.textContent=String(cur.rem);
+    clientsEl.textContent=String(cur.clientsCount);
+    vesEl.textContent=money(cur.ves)+' VES';
+    avgEl.textContent=money(cur.avgProfit)+' CLP';
+    if(document.getElementById('md_staff_fee'))document.getElementById('md_staff_fee').textContent=money(cur.staffFee||0)+' CLP';
+
+    const keys=Object.keys(all).sort();
+    const idx=keys.indexOf(key);
+    const prevKey=idx>0?keys[idx-1]:null;
+    const prev=prevKey?all[prevKey]:null;
+
+    growthEl.className='value';
+    if(!prev || prev.profit===0){
+      growthEl.textContent='Sin comparación disponible';
+      growthEl.classList.add('vz-growth-neutral');
+    }else{
+      const growth=((cur.profit-prev.profit)/Math.abs(prev.profit))*100;
+      const sign=growth>0?'+':'';
+      growthEl.textContent=sign+growth.toFixed(1)+'% vs. '+prevKey;
+      growthEl.classList.add(growth>=0?'vz-growth-up':'vz-growth-down');
+    }
+
+    const evolution=document.getElementById('md_evolution');
+    if(!evolution) return;
+    const recent=keys.slice(-6);
+    if(!recent.length){
+      evolution.innerHTML='<div class="muted">Aún no hay remesas registradas.</div>';
+      return;
+    }
+    const maxAbs=Math.max(...recent.map(k=>Math.abs(all[k].profit)),1);
+    evolution.innerHTML=recent.map(k=>{
+      const r=all[k];
+      const width=Math.max(2,Math.round(Math.abs(r.profit)/maxAbs*100));
+      const neg=r.profit<0?' negative':'';
+      return '<div class="vz-evolution-row">'+
+        '<div>'+esc(k)+'</div>'+
+        '<div class="vz-bar-wrap"><div class="vz-bar'+neg+'" style="width:'+width+'%"></div></div>'+
+        '<div style="text-align:right;font-weight:650">'+money(r.profit)+' CLP</div>'+
+        '<div style="text-align:right;color:var(--vz-muted,#9292a5)">'+r.rem+' rem.</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // Expose a small hook so the existing month navigation can refresh the dashboard.
+  window.renderMonthlyDashboard=renderMonthlyDashboard;
+
+  // Existing render() is already called by V3.2; run after it and whenever the UI changes.
+  const originalRender = window.render;
+  if(typeof originalRender==='function'){
+    window.render=function(){
+      originalRender();
+      renderMonthlyDashboard();
+    };
+  }
+
+  const oldShowDay=window.showDay;
+  if(typeof oldShowDay==='function'){
+    window.showDay=function(key){
+      oldShowDay(key);
+      renderMonthlyDashboard();
+    };
+  }
+
+  // The original month buttons change calDate directly. Attach listeners without replacing them.
+  ['prevMonth','nextMonth'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('click',()=>setTimeout(renderMonthlyDashboard,0));
+  });
+
+  setTimeout(renderMonthlyDashboard,0);
+})();
+
+(function(){
+  const type=$('cf_type'),cur=$('cf_currency'),clpW=$('cf_clp_wrap'),vesW=$('cf_ves_wrap');
+  function syncCashFields(){
+    const isVes=cur&&cur.value==='VES';
+    if(clpW)clpW.style.display=isVes?'none':'block';
+    if(vesW)vesW.style.display=isVes?'block':'none';
+    if(type&&type.value!=='withdraw'&&type.value!=='capital'&&isVes){
+      cur.value='CLP';
+      if(clpW)clpW.style.display='block';
+      if(vesW)vesW.style.display='none';
+    }
+  }
+  if(type)type.addEventListener('change',syncCashFields);
+  if(cur)cur.addEventListener('change',syncCashFields);
+  syncCashFields();
+})();
+</script>
+</body>
+</html>
