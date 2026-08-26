@@ -316,7 +316,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.1</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.2</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -751,6 +751,22 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
         ? JSON.parse(JSON.stringify(row.payload)) : null;
       if(!payload) continue;
 
+      // V3.5.2: daily closures live in the same cloud table as moves,
+      // but are restored into data.closures and never become journal moves.
+      if(payload.type==='daily_closing'){
+        const closure=payload.closure && typeof payload.closure==='object' ? payload.closure : payload;
+        if(closure.date){
+          const exists=(data.closures||[]).find(c=>c.date===closure.date);
+          if(exists){
+            const idx=data.closures.findIndex(c=>c.date===closure.date);
+            if(idx>=0){data.closures[idx]=closure;updated++;}
+          }else{
+            data.closures.push(closure);added++;
+          }
+        }
+        continue;
+      }
+
       const id=String(payload.id||row.legacy_id||'');
       if(!id) continue;
 
@@ -779,6 +795,23 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
     return {ok:true,added,updated,total:(rows||[]).length};
   }
 
+  function closureCloudMove(c){
+    return {
+      id:'closure-'+String(c.date),
+      seq:0,
+      date:(c.date||'')+'T23:59',
+      type:'daily_closing',
+      ref:'Cierre diario '+String(c.date||''),
+      closure:JSON.parse(JSON.stringify(c))
+    };
+  }
+
+  async function syncClosureToCloud(c){
+    const user=await cloudUser();
+    if(!user) return {ok:false,reason:'not_authenticated'};
+    return syncMoveToCloud(closureCloudMove(c));
+  }
+
   async function pushAllMovesToCloud(){
     const user=await cloudUser();
     if(!user) return {ok:false,reason:'not_authenticated',count:0};
@@ -787,6 +820,11 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
     let count=0;
     for(const m of moves){
       const r=await syncMoveToCloud(m);
+      if(r.ok) count++;
+    }
+    // V3.5.2: also persist all historical daily closures in the cloud.
+    for(const c of (data.closures||[])){
+      const r=await syncClosureToCloud(c);
       if(r.ok) count++;
     }
     return {ok:true,count};
@@ -845,7 +883,7 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
     el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
   }
 
-  function sorted(){return [...data.moves].sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq)}
+  function sorted(){return [...data.moves].filter(m=>m.type!=='daily_closing').sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq)}
 function historySorted(){const rows=sorted();return historyOrder==='desc'?rows.reverse():rows;}
 function investmentVES(m){
  const gross=(Number(m.clp)/Number(m.buy));
@@ -1034,6 +1072,11 @@ $('close_save').onclick=()=>{
    vesDelivered:x.d.ves,bankFeesVES:x.d.bankFee
  };
  data.closures=(data.closures||[]).filter(c=>c.date!==x.day);data.closures.push(snapshot);save();renderCloseHistory();
+ // Persist the closure itself in the same cloud repository used by the Journal.
+ syncClosureToCloud(snapshot).then(r=>{
+   if(r.reason==='not_authenticated') return;
+   if(r.ok) cloudSetStatus('☁️ Cierre diario sincronizado.',true);
+ }).catch(e=>console.error('Cloud closure sync error:',e));
  $('close_msg').textContent=x.status==='ok'?'✅ Día cerrado y cuadrado.':x.status==='warn'?'🟡 Día cerrado con diferencia menor. Quedó guardado para auditoría.':'🔴 Día cerrado con diferencia a revisar. Quedó guardado para auditoría.';
 };
 renderCloseHistory();
@@ -1367,7 +1410,7 @@ render();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.1',
+        version:'V3.5.2',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
