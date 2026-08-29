@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.1</title>
+<title>Vzla Coin V3.5.3</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -316,7 +316,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.2</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.3</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -492,7 +492,7 @@ Paga comisión a colaborador
 <label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
 <label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
 </div>
-<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia.</div>
+<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.3, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
 <div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
 </div>
 </section>
@@ -751,7 +751,7 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
         ? JSON.parse(JSON.stringify(row.payload)) : null;
       if(!payload) continue;
 
-      // V3.5.2: daily closures live in the same cloud table as moves,
+      // V3.5.3: daily closures live in the same cloud table as moves,
       // but are restored into data.closures and never become journal moves.
       if(payload.type==='daily_closing'){
         const closure=payload.closure && typeof payload.closure==='object' ? payload.closure : payload;
@@ -822,7 +822,7 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
       const r=await syncMoveToCloud(m);
       if(r.ok) count++;
     }
-    // V3.5.2: also persist all historical daily closures in the cloud.
+    // V3.5.3: also persist all historical daily closures in the cloud.
     for(const c of (data.closures||[])){
       const r=await syncClosureToCloud(c);
       if(r.ok) count++;
@@ -901,8 +901,20 @@ function replay(){
      // Initial VES have unknown cost in this version; kept separate from purchased inventory.
    } else if(m.type==='capital'){
      if((m.currency||'CLP')==='VES'){
-       s.ves+=Number(m.ves)||0;
-       // Los VES aportados como capital no tienen costo de compra registrado, igual que los VES iniciales.
+       const ves=Number(m.ves)||0;
+       // V3.5.3: un aporte de VES aumenta la cantidad disponible, pero NO debe
+       // entrar al inventario con costo cero porque eso reduciría artificialmente
+       // el costo promedio y exageraría la ganancia de las remesas posteriores.
+       // Le asignamos el costo promedio vigente al momento del aporte. Así:
+       // - la caja VES aumenta;
+       // - el costo promedio NO cambia;
+       // - el aporte no genera ganancia ni inversión;
+       // - las remesas posteriores conservan el mismo costo unitario real.
+       const unitCost=s.avg||0;
+       s.ves+=ves;
+       s.cost+=ves*unitCost;
+       m.vesUnitCost=unitCost;
+       m.vesCost=ves*unitCost;
      }else{
        s.cash+=Number(m.clp)||0;
      }
@@ -1081,7 +1093,32 @@ $('close_save').onclick=()=>{
 };
 renderCloseHistory();
 
+function restoreLastRemittanceForm(){
+ const remittances=(data.moves||[]).filter(m=>m&&m.type==='remittance');
+ if(!remittances.length){
+   // No previous remittance: keep the current/default numeric values.
+   // The client/reference field must always start empty.
+   if($('r_ref')) $('r_ref').value='';
+   return;
+ }
+ const last=remittances.reduce((a,b)=>{
+   const sa=Number(a.seq)||0, sb=Number(b.seq)||0;
+   return sb>sa?b:a;
+ });
+ if($('r_clp')) $('r_clp').value=Number(last.clp)||0;
+ if($('r_rate')) $('r_rate').value=Number(last.rate)||0;
+ if($('r_ves')) $('r_ves').value=Number(last.ves)||0;
+ if($('r_bank_charge')) $('r_bank_charge').checked=(Number(last.bankPct)||0)>0;
+ if($('r_staff_charge')) $('r_staff_charge').checked=Number(last.staffPct)||0>0;
+ if($('r_staff_name')) $('r_staff_name').value=String(last.staffName||'');
+ if($('r_staff_pct')) $('r_staff_pct').value=Number(last.staffPct)||0;
+ if($('r_staff_fields')) $('r_staff_fields').style.display=(Number(last.staffPct)||0)>0?'grid':'none';
+ // Deliberately never restore the client/reference.
+ if($('r_ref')) $('r_ref').value='';
+}
+
 function render(){
+ restoreLastRemittanceForm();
  const {s}=replay();
  $('j_cash').textContent=money(s.cash)+' CLP';$('j_usdt').textContent=num4(s.usdt)+' USDT';$('j_usdt_avg').textContent='Costo: '+money(s.usdtAvg)+' CLP/USDT';$('j_ves').textContent=money(s.ves)+' VES';$('j_avg').textContent=rateFmt(s.avg)+' CLP/VES';$('j_profit').textContent=money(s.profit)+' CLP';
  $('j_received').textContent=money(s.received)+' CLP';$('j_invested').textContent=money(s.invested)+' CLP';$('j_sent').textContent=money(s.sent)+' VES';$('j_icount').textContent=s.icount;$('j_rcount').textContent=s.rcount;$('j_cost').textContent=money(s.cost)+' CLP';$('j_usdt_detail').textContent=num4(s.usdt)+' USDT';$('j_usdt_cost').textContent=money(s.usdtCost)+' CLP';
@@ -1410,7 +1447,7 @@ render();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.2',
+        version:'V3.5.3',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
