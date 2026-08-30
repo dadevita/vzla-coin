@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.7</title>
+<title>Vzla Coin V3.5.8</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -316,7 +316,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.7</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.8</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -493,7 +493,7 @@ Paga comisión a colaborador
 <label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
 <label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
 </div>
-<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.7, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
+<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.8, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
 <div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
 </div>
 </section>
@@ -670,7 +670,7 @@ const refreshAutoDate=()=>{
 
 ['i_date','r_date','cf_date'].forEach(id=>$(id).value=todayLocal());
 
-// V3.5.7 — almacenamiento local AISLADO por origen/ruta.
+// V3.5.8 — almacenamiento local AISLADO por origen/ruta.
 // Evita que distintas copias (file://, Vercel u otro archivo HTML) compartan
 // accidentalmente el mismo Journal mediante la clave genérica remesas_v32.
 const LEGACY_DATA_KEY='remesas_v32';
@@ -692,7 +692,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
 
 // ============================================================
   // ============================================================
-  // V3.5.7 — SINCRONIZACIÓN ONLINE MULTIDISPOSITIVO
+  // V3.5.8 — SINCRONIZACIÓN ONLINE MULTIDISPOSITIVO
   // ============================================================
   // Supabase = fuente de verdad compartida.
   // localStorage = caché/respaldo del dispositivo.
@@ -848,7 +848,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     }
 
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.5.7',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.5.8',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
       localStorage.setItem('vzla_coin_precloud_v357',JSON.stringify(snapshot));
     }catch(e){console.warn('Local safety snapshot error',e);}
 
@@ -857,7 +857,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     // pendientes del Journal local anterior a esta carga autoritativa.
     rebuilt.meta.dirty={};rebuilt.meta.pendingDeletes={};rebuilt.meta.conflicts=[];
     data={moves:rebuilt.moves,seq:rebuilt.seq,started:rebuilt.started,openingId:rebuilt.openingId,closures:rebuilt.closures};
-    saveCloudMeta(rebuilt.meta);save();render();
+    saveCloudMeta(rebuilt.meta);save();render();restoreLastRemittanceForm();previewRemittance();
     cloudInitialSyncDone=true;cloudLastSyncAt=Date.now();
     cloudSetStatus(`☁️ Journal cargado desde la nube · ${rebuilt.moves.length} movimientos · ${rebuilt.closures.length} cierres.`,true);
     return {ok:true,mode:'pull',rows:rows.length};
@@ -1048,7 +1048,7 @@ function replay(){
    } else if(m.type==='capital'){
      if((m.currency||'CLP')==='VES'){
        const ves=Number(m.ves)||0;
-       // V3.5.7: un aporte de VES aumenta la cantidad disponible, pero NO debe
+       // V3.5.8: un aporte de VES aumenta la cantidad disponible, pero NO debe
        // entrar al inventario con costo cero porque eso reduciría artificialmente
        // el costo promedio y exageraría la ganancia de las remesas posteriores.
        // Le asignamos el costo promedio vigente al momento del aporte. Así:
@@ -1239,6 +1239,8 @@ $('close_save').onclick=()=>{
 };
 renderCloseHistory();
 
+// Populate the remittance form only at controlled moments (initial load/cloud load/after saving).
+// IMPORTANT: do not call this from render(), because render() also runs during online polling.
 function restoreLastRemittanceForm(){
  const remittances=(data.moves||[]).filter(m=>m&&m.type==='remittance');
  if(!remittances.length){
@@ -1264,7 +1266,6 @@ function restoreLastRemittanceForm(){
 }
 
 function render(){
- restoreLastRemittanceForm();
  const {s}=replay();
  $('j_cash').textContent=money(s.cash)+' CLP';$('j_usdt').textContent=num4(s.usdt)+' USDT';$('j_usdt_avg').textContent='Costo: '+money(s.usdtAvg)+' CLP/USDT';$('j_ves').textContent=money(s.ves)+' VES';$('j_avg').textContent=rateFmt(s.avg)+' CLP/VES';$('j_profit').textContent=money(s.profit)+' CLP';
  $('j_received').textContent=money(s.received)+' CLP';$('j_invested').textContent=money(s.invested)+' CLP';$('j_sent').textContent=money(s.sent)+' VES';$('j_icount').textContent=s.icount;$('j_rcount').textContent=s.rcount;$('j_cost').textContent=money(s.cost)+' CLP';$('j_usdt_detail').textContent=num4(s.usdt)+' USDT';$('j_usdt_cost').textContent=money(s.usdtCost)+' CLP';
@@ -1443,7 +1444,7 @@ $('r_add').onclick=()=>{
  const staffPct=staffOn?(Number($('r_staff_pct').value)||0):0;
  const staffName=staffOn?String($('r_staff_name').value||'').trim():'';
  const staffFee=staffOn?clp*staffPct/100:0;
- const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('r_date_auto')&&$('r_date_auto').checked?todayLocal():$('r_date').value),type:'remittance',clp,ves,rate:rr,ref:$('r_ref').value,bankPct:($('r_bank_charge').checked?0.30:0),staffPct,staffName,staffFee};data.moves.push(newMove);save();$('r_msg').textContent='✅ Remesa registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('r_msg'));
+ const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('r_date_auto')&&$('r_date_auto').checked?todayLocal():$('r_date').value),type:'remittance',clp,ves,rate:rr,ref:$('r_ref').value,bankPct:($('r_bank_charge').checked?0.30:0),staffPct,staffName,staffFee};data.moves.push(newMove);save();$('r_msg').textContent='✅ Remesa registrada localmente.';refreshAutoDate();render();restoreLastRemittanceForm();previewRemittance();syncAndConfirm(newMove,$('r_msg'));
 };
 $('cf_add').onclick=()=>{
  if(!data.started){$('cf_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
@@ -1479,8 +1480,10 @@ $('prevMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalenda
 $('nextMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar(dailyStats())};
 
 render();
+restoreLastRemittanceForm();
+previewRemittance();
 
-// Vzla Coin Cloud — autenticación + sincronización online V3.5.7.
+// Vzla Coin Cloud — autenticación + sincronización online V3.5.8.
 (function(){
   const emailEl=document.getElementById('cloudEmail');
   const passEl=document.getElementById('cloudPassword');
@@ -1626,7 +1629,7 @@ render();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.7',
+        version:'V3.5.8',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1636,7 +1639,7 @@ render();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.5.7_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.5.8_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
