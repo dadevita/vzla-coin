@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.3</title>
+<title>Vzla Coin V3.5.5</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -316,13 +316,13 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.3</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.5</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
     <div>
       <h2 style="margin:0">☁️ Conexión en la nube</h2>
-      <p class="muted" style="margin:5px 0 0">Tus movimientos se sincronizan con Supabase. El navegador mantiene un respaldo local.</p>
+      <p class="muted" style="margin:5px 0 0">La nube sirve como respaldo. Iniciar sesión NO modifica tu Journal local.</p>
     </div>
     <div id="cloudStatus" class="muted">⚪ Sin iniciar sesión</div>
   </div>
@@ -333,7 +333,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
     <button type="button" class="btn primary" id="cloudSignup">Crear cuenta nube</button>
     <button type="button" class="btn" id="cloudLogin">Iniciar sesión</button>
-    <button type="button" class="btn primary" id="cloudSync" disabled>☁️ Sincronizar ahora</button>
+    <button type="button" class="btn primary" id="cloudSync" disabled>☁️ Subir local → nube</button>
     <button type="button" class="btn" id="cloudLogout" disabled>Cerrar sesión</button>
   </div>
   <div id="cloudMessage" class="muted" style="margin-top:8px"></div><div id="cloudSyncStatus" class="muted" style="margin-top:5px"></div>
@@ -492,7 +492,7 @@ Paga comisión a colaborador
 <label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
 <label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
 </div>
-<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.3, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
+<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.4, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
 <div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
 </div>
 </section>
@@ -677,156 +677,119 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
 
 // ============================================================
   // SINCRONIZACION CLOUD · VERSION DEFINITIVA
-  // localStorage sigue siendo respaldo local; Supabase es la fuente
-  // compartida para que el mismo Journal pueda abrirse en otros dispositivos.
+  // ============================================================
+  // Vzla Coin V3.5.5 — sincronización segura LOCAL → NUBE
+  // Iniciar sesión nunca hace PULL ni modifica el Journal local.
+  // El botón de sincronización hace explícitamente LOCAL → NUBE.
   // ============================================================
   let cloudSyncBusy=false;
+  const CLOUD_META_KEY='vzla_coin_cloud_sync_v355';
 
-  async function cloudUser(){
+  function cloudMeta(){
     try{
-      const {data:{user},error}=await supabaseClient.auth.getUser();
-      if(error) throw error;
-      return user||null;
-    }catch(e){ return null; }
+      const x=JSON.parse(localStorage.getItem(CLOUD_META_KEY)||'{}');
+      return {versions:(x.versions&&typeof x.versions==='object')?x.versions:{},tombstones:(x.tombstones&&typeof x.tombstones==='object')?x.tombstones:{},conflicts:Array.isArray(x.conflicts)?x.conflicts:[]};
+    }catch(e){return {versions:{},tombstones:{},conflicts:[]};}
   }
-
-  function cloudPayloadForMove(m){
-    replay();
-    return JSON.parse(JSON.stringify(m));
+  function saveCloudMeta(m){try{localStorage.setItem(CLOUD_META_KEY,JSON.stringify(m));}catch(e){console.warn('Cloud meta save error',e);}}
+  function stableJson(x){
+    if(Array.isArray(x))return '['+x.map(stableJson).join(',')+']';
+    if(x&&typeof x==='object')return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stableJson(x[k])).join(',')+'}';
+    return JSON.stringify(x);
   }
+  function payloadHash(x){let h=2166136261,str=stableJson(x);for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
+  function nowIso(){return new Date().toISOString();}
+  function rememberVersion(id,updatedAt,payload){const m=cloudMeta();m.versions[String(id)]={updated_at:updatedAt||nowIso(),hash:payloadHash(payload)};delete m.tombstones[String(id)];saveCloudMeta(m);}
+  function rememberTombstone(id,when){const m=cloudMeta();m.tombstones[String(id)]=when||nowIso();delete m.versions[String(id)];saveCloudMeta(m);}
+  function addCloudConflict(c){const m=cloudMeta(),key=String(c.id)+'|'+String(c.cloudUpdatedAt||'');if(!m.conflicts.some(x=>String(x.id)+'|'+String(x.cloudUpdatedAt||'')===key)){m.conflicts.push({...c,createdAt:nowIso()});if(m.conflicts.length>100)m.conflicts=m.conflicts.slice(-100);saveCloudMeta(m);}}
 
-  function cloudSetStatus(text,good=false){
-    const el=$('cloudSyncStatus');
-    if(!el)return;
-    el.textContent=text||'';
-    el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
-  }
+  async function cloudUser(){try{const {data:{user},error}=await supabaseClient.auth.getUser();if(error)throw error;return user||null;}catch(e){return null;}}
+  function cloudPayloadForMove(m){replay();return JSON.parse(JSON.stringify(m));}
+  function cloudSetStatus(text,good=false){const el=$('cloudSyncStatus');if(!el)return;el.textContent=text||'';el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';}
 
-  async function syncMoveToCloud(m){
-    const user=await cloudUser();
-    if(!user) return {ok:false,reason:'not_authenticated'};
-    const payload=cloudPayloadForMove(m);
-    const row={
-      user_id:user.id,
-      legacy_id:String(m.id),
-      seq:Number(m.seq)||0,
-      type:String(m.type||''),
-      occurred_at:new Date(m.date).toISOString(),
-      payload,
-      updated_at:new Date().toISOString()
-    };
-    const {error}=await supabaseClient.from('journal_moves')
-      .upsert(row,{onConflict:'user_id,legacy_id'});
-    if(error) throw error;
-    return {ok:true};
+  async function syncMoveToCloud(m,options={}){
+    const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated'};
+    const payload=cloudPayloadForMove(m),id=String(m.id),updatedAt=options.updatedAt||nowIso();
+    const row={user_id:user.id,legacy_id:id,seq:Number(m.seq)||0,type:String(m.type||''),occurred_at:new Date(m.date).toISOString(),payload,updated_at:updatedAt};
+    const {error}=await supabaseClient.from('journal_moves').upsert(row,{onConflict:'user_id,legacy_id'});
+    if(error)throw error;rememberVersion(id,updatedAt,payload);return {ok:true,updatedAt};
   }
 
   async function deleteMoveFromCloud(m){
-    const user=await cloudUser();
-    if(!user) return {ok:false,reason:'not_authenticated'};
-    const {error}=await supabaseClient.from('journal_moves')
-      .delete().eq('user_id',user.id).eq('legacy_id',String(m.id));
-    if(error) throw error;
-    return {ok:true};
+    const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated'};
+    const id=String(m.id),deletedAt=nowIso();
+    // Keep a tombstone in the cloud instead of hard-deleting. This prevents a
+    // stale device from resurrecting a movement during a later synchronization.
+    const payload={id,seq:Number(m.seq)||0,date:m.date,type:'deleted',ref:m.ref||'',deleted:true,deletedAt};
+    const row={user_id:user.id,legacy_id:id,seq:Number(m.seq)||0,type:'deleted',occurred_at:new Date(m.date).toISOString(),payload,updated_at:deletedAt};
+    const {error}=await supabaseClient.from('journal_moves').upsert(row,{onConflict:'user_id,legacy_id'});
+    if(error)throw error;rememberTombstone(id,deletedAt);return {ok:true,deletedAt};
   }
 
   async function pullMovesFromCloud(){
-    const user=await cloudUser();
-    if(!user) return {ok:false,reason:'not_authenticated',added:0,total:0};
-
-    const {data:rows,error}=await supabaseClient
-      .from('journal_moves')
-      .select('legacy_id,seq,type,occurred_at,payload,updated_at')
-      .eq('user_id',user.id)
-      .order('seq',{ascending:true});
-
-    if(error) throw error;
-
-    const localById=new Map((data.moves||[]).map(m=>[String(m.id),m]));
-    let added=0,updated=0;
-    let maxSeq=Number(data.seq)||0;
+    const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated',added:0,updated:0,conflicts:0,total:0};
+    const {data:rows,error}=await supabaseClient.from('journal_moves').select('legacy_id,seq,type,occurred_at,payload,updated_at').eq('user_id',user.id).order('seq',{ascending:true});
+    if(error)throw error;
+    const meta=cloudMeta(),localById=new Map((data.moves||[]).map(m=>[String(m.id),m]));
+    let added=0,updated=0,conflicts=0,maxSeq=Number(data.seq)||0;
 
     for(const row of (rows||[])){
-      const payload=row.payload && typeof row.payload==='object'
-        ? JSON.parse(JSON.stringify(row.payload)) : null;
-      if(!payload) continue;
+      const payload=row.payload&&typeof row.payload==='object'?JSON.parse(JSON.stringify(row.payload)):null;if(!payload)continue;
+      const id=String(payload.id||row.legacy_id||'');if(!id)continue;
+      const cloudAt=row.updated_at||row.occurred_at||nowIso(),tomb=meta.tombstones[id];
 
-      // V3.5.3: daily closures live in the same cloud table as moves,
-      // but are restored into data.closures and never become journal moves.
+      // Cloud tombstone: remove local copy and remember deletion.
+      if(payload.deleted||row.type==='deleted'){
+        if(!tomb||new Date(cloudAt)>new Date(tomb)){
+          const idx=data.moves.findIndex(m=>String(m.id)===id);
+          if(idx>=0){data.moves.splice(idx,1);updated++;}
+          meta.tombstones[id]=cloudAt;delete meta.versions[id];
+        }
+        continue;
+      }
+      if(tomb&&new Date(tomb)>=new Date(cloudAt))continue;
+
+      // Daily closures live in the same cloud table but never become moves.
       if(payload.type==='daily_closing'){
-        const closure=payload.closure && typeof payload.closure==='object' ? payload.closure : payload;
-        if(closure.date){
-          const exists=(data.closures||[]).find(c=>c.date===closure.date);
-          if(exists){
-            const idx=data.closures.findIndex(c=>c.date===closure.date);
-            if(idx>=0){data.closures[idx]=closure;updated++;}
-          }else{
-            data.closures.push(closure);added++;
-          }
+        const closure=payload.closure&&typeof payload.closure==='object'?payload.closure:payload;
+        const closureId=id,exists=(data.closures||[]).find(c=>c.date===closure.date);
+        if(!exists){data.closures.push(closure);added++;meta.versions[closureId]={updated_at:cloudAt,hash:payloadHash(closure)};}
+        else{
+          const localHash=payloadHash(closure),cloudHash=payloadHash(closure),remembered=meta.versions[closureId];
+          if(localHash!==cloudHash){ /* defensive; normally identical */ }
+          else if(!remembered){meta.versions[closureId]={updated_at:cloudAt,hash:payloadHash(closure)};}
+          else if(remembered.hash!==localHash){addCloudConflict({id:closureId,type:'daily_closing',reason:'divergence',cloudUpdatedAt:cloudAt});conflicts++;}
+          else meta.versions[closureId]={updated_at:cloudAt,hash:payloadHash(closure)};
         }
         continue;
       }
 
-      const id=String(payload.id||row.legacy_id||'');
-      if(!id) continue;
-
-      // Cloud is authoritative for an already-synced legacy_id.
-      if(localById.has(id)){
-        const idx=data.moves.findIndex(m=>String(m.id)===id);
-        if(idx>=0){
-          data.moves[idx]=payload;
-          updated++;
+      const local=localById.get(id),cloudHash=payloadHash(payload);
+      if(!local){data.moves.push(payload);localById.set(id,payload);added++;meta.versions[id]={updated_at:cloudAt,hash:cloudHash};}
+      else{
+        const localHash=payloadHash(local),remembered=meta.versions[id];
+        if(localHash===cloudHash){meta.versions[id]={updated_at:cloudAt,hash:cloudHash};}
+        else if(remembered&&remembered.hash===localHash&&remembered.updated_at&&new Date(cloudAt)>new Date(remembered.updated_at)){
+          const idx=data.moves.findIndex(m=>String(m.id)===id);if(idx>=0){data.moves[idx]=payload;localById.set(id,payload);updated++;}
+          meta.versions[id]={updated_at:cloudAt,hash:cloudHash};
+        }else{
+          // Unknown/first-sync divergence: preserve local copy; never silently overwrite it.
+          addCloudConflict({id,type:payload.type,reason:remembered?'local_changed':'first_sync_conflict',cloudUpdatedAt:cloudAt});conflicts++;
         }
-      }else{
-        data.moves.push(payload);
-        localById.set(id,payload);
-        added++;
       }
-
       maxSeq=Math.max(maxSeq,Number(payload.seq)||0,Number(row.seq)||0);
     }
-
-    data.seq=maxSeq;
-    data.started=data.moves.some(m=>m.type==='opening');
-    data.openingId=(data.moves.find(m=>m.type==='opening')||{}).id||null;
-
-    save();
-    render();
-    return {ok:true,added,updated,total:(rows||[]).length};
+    data.seq=maxSeq;data.started=data.moves.some(m=>m.type==='opening');data.openingId=(data.moves.find(m=>m.type==='opening')||{}).id||null;
+    saveCloudMeta(meta);save();render();return {ok:true,added,updated,conflicts,total:(rows||[]).length};
   }
 
-  function closureCloudMove(c){
-    return {
-      id:'closure-'+String(c.date),
-      seq:0,
-      date:(c.date||'')+'T23:59',
-      type:'daily_closing',
-      ref:'Cierre diario '+String(c.date||''),
-      closure:JSON.parse(JSON.stringify(c))
-    };
-  }
-
-  async function syncClosureToCloud(c){
-    const user=await cloudUser();
-    if(!user) return {ok:false,reason:'not_authenticated'};
-    return syncMoveToCloud(closureCloudMove(c));
-  }
+  function closureCloudMove(c){return {id:'closure-'+String(c.date),seq:0,date:(c.date||'')+'T23:59',type:'daily_closing',ref:'Cierre diario '+String(c.date||''),closure:JSON.parse(JSON.stringify(c))};}
+  async function syncClosureToCloud(c){const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated'};return syncMoveToCloud(closureCloudMove(c),{updatedAt:c.closedAt||nowIso()});}
 
   async function pushAllMovesToCloud(){
-    const user=await cloudUser();
-    if(!user) return {ok:false,reason:'not_authenticated',count:0};
-
-    const moves=[...(data.moves||[])];
-    let count=0;
-    for(const m of moves){
-      const r=await syncMoveToCloud(m);
-      if(r.ok) count++;
-    }
-    // V3.5.3: also persist all historical daily closures in the cloud.
-    for(const c of (data.closures||[])){
-      const r=await syncClosureToCloud(c);
-      if(r.ok) count++;
-    }
+    const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated',count:0};let count=0;
+    for(const m of [...(data.moves||[])]){const r=await syncMoveToCloud(m);if(r.ok)count++;}
+    for(const c of (data.closures||[])){const r=await syncClosureToCloud(c);if(r.ok)count++;}
     return {ok:true,count};
   }
 
@@ -835,53 +798,65 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
     cloudSyncBusy=true;
     try{
       const user=await cloudUser();
-      if(!user){
-        cloudSetStatus('⚪ Sin sesión en la nube.');
-        return;
+      if(!user){cloudSetStatus('⚪ Sin sesión en la nube.');return;}
+
+      // V3.5.5 — LOCAL ES LA FUENTE MAESTRA.
+      // Nunca hacemos PULL automático ni reemplazamos el Journal local.
+      // Antes de tocar la nube guardamos una copia interna de seguridad.
+      const snapshot={
+        app:'Vzla Coin · Sistema de Remesas',
+        version:'V3.5.5',
+        savedAt:nowIso(),
+        data:JSON.parse(JSON.stringify(data))
+      };
+      try{localStorage.setItem('vzla_coin_precloud_v355',JSON.stringify(snapshot));}catch(e){console.warn('Local safety snapshot error',e);}
+
+      const localMoves=[...(data.moves||[])];
+      const localClosures=[...(data.closures||[])];
+      const totalLocal=localMoves.length+localClosures.length;
+
+      cloudSetStatus(`☁️ Preparando nube… ${totalLocal} registros locales`);
+
+      // La nube anterior puede contener registros que ya no existen localmente.
+      // Se eliminan SOLO los registros del usuario actual y luego se sube
+      // exactamente la copia local. El Journal del navegador jamás se toca.
+      const {error:deleteError}=await supabaseClient
+        .from('journal_moves')
+        .delete()
+        .eq('user_id',user.id);
+      if(deleteError) throw deleteError;
+
+      let pushed=0;
+      for(const m of localMoves){
+        const r=await syncMoveToCloud(m);
+        if(r.ok)pushed++;
+      }
+      for(const c of localClosures){
+        const r=await syncClosureToCloud(c);
+        if(r.ok)pushed++;
       }
 
-      cloudSetStatus('☁️ Sincronizando…');
-      const pulled=await pullMovesFromCloud();
-      const pushed=await pushAllMovesToCloud();
-
-      if(pulled.reason==='not_authenticated'||pushed.reason==='not_authenticated'){
-        cloudSetStatus('⚠️ Inicia sesión para sincronizar.');
-        return;
-      }
+      const meta=cloudMeta();
+      meta.conflicts=[];
+      saveCloudMeta(meta);
 
       const now=new Date().toLocaleString('es-CL');
-      cloudSetStatus(
-        `✅ Sincronizado · ${pulled.total} en nube · ${data.moves.length} locales · ${now}`,
-        true
-      );
+      cloudSetStatus(`✅ Nube actualizada desde este navegador · ${pushed}/${totalLocal} registros · ${now}`,true);
+      return {ok:true,pushed,totalLocal};
     }catch(e){
       console.error('Cloud sync error:',e);
-      cloudSetStatus('⚠️ No se pudo completar la sincronización: '+(e.message||e));
+      cloudSetStatus('⚠️ No se pudo actualizar la nube: '+(e.message||e));
+      return {ok:false,error:e};
     }finally{
       cloudSyncBusy=false;
     }
   }
 
   async function syncAndConfirm(m,msgEl){
-    try{
-      const result=await syncMoveToCloud(m);
-      if(result.reason==='not_authenticated'){
-        syncMessage(msgEl,'⚠️ Guardado localmente. Inicia sesión en la nube para sincronizar.',false);
-        return;
-      }
-      syncMessage(msgEl,'☁️ Sincronizado en la nube.',true);
-      cloudSetStatus('☁️ Cambio sincronizado.',true);
-    }catch(e){
-      console.error('Cloud sync error:',e);
-      syncMessage(msgEl,'⚠️ Guardado localmente, pero no se pudo sincronizar: '+(e.message||e),false);
-    }
+    try{const result=await syncMoveToCloud(m);if(result.reason==='not_authenticated'){syncMessage(msgEl,'⚠️ Guardado localmente. Inicia sesión en la nube para sincronizar.',false);return;}syncMessage(msgEl,'☁️ Sincronizado en la nube.',true);cloudSetStatus('☁️ Cambio sincronizado.',true);}
+    catch(e){console.error('Cloud sync error:',e);syncMessage(msgEl,'⚠️ Guardado localmente, pero no se pudo sincronizar: '+(e.message||e),false);}
   }
-
-  function syncMessage(el,text,good=false){
-    if(!el)return;
-    el.textContent=text;
-    el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';
-  }
+  function syncMessage(el,text,good=false){if(!el)return;el.textContent=text;el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';}
 
   function sorted(){return [...data.moves].filter(m=>m.type!=='daily_closing').sort((a,b)=>a.date.localeCompare(b.date)||a.seq-b.seq)}
 function historySorted(){const rows=sorted();return historyOrder==='desc'?rows.reverse():rows;}
@@ -902,7 +877,7 @@ function replay(){
    } else if(m.type==='capital'){
      if((m.currency||'CLP')==='VES'){
        const ves=Number(m.ves)||0;
-       // V3.5.3: un aporte de VES aumenta la cantidad disponible, pero NO debe
+       // V3.5.4: un aporte de VES aumenta la cantidad disponible, pero NO debe
        // entrar al inventario con costo cero porque eso reduciría artificialmente
        // el costo promedio y exageraría la ganancia de las remesas posteriores.
        // Le asignamos el costo promedio vigente al momento del aporte. Así:
@@ -1201,7 +1176,9 @@ async function syncAndConfirmDelete(m){
 window.deleteMove=function(id){
  const m=data.moves.find(x=>x.id===id);if(!m)return;
  if(!confirm('¿Eliminar este movimiento? El Journal se recalculará completamente.'))return;
- data.moves=data.moves.filter(x=>x.id!==id);save();render();
+ data.moves=data.moves.filter(x=>x.id!==id);
+ rememberTombstone(String(m.id),nowIso());
+ save();render();
  syncAndConfirmDelete(m);
 }
 function closeModal(){$('modalBack').classList.remove('show')}$('closeModal').onclick=closeModal;
@@ -1368,8 +1345,7 @@ render();
     }
     if(data.session){
       setLogged(data.user);
-      msg('✅ Cuenta creada y sesión iniciada. Sincronizando…',true);
-      await cloudSyncAll();
+      msg('✅ Cuenta creada y sesión iniciada. Tu Journal local no fue modificado. Si quieres, usa «Subir local → nube».',true);
     }else{
       msg('✅ Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.',true);
       signupBtn.disabled=false;
@@ -1391,14 +1367,14 @@ render();
       return;
     }
     setLogged(data.user);
-    msg('✅ Sesión iniciada. Sincronizando Journal…',true);
-    await cloudSyncAll();
+    msg('✅ Sesión iniciada. Tu Journal local permanece intacto. Usa «Subir local → nube» cuando quieras actualizar la nube.',true);
   });
 
   syncBtn.addEventListener('click',async()=>{
-    msg('Sincronizando Journal…');
-    await cloudSyncAll();
-    msg('✅ Sincronización completada.',true);
+    msg('Subiendo el Journal local a la nube…');
+    const result=await cloudSyncAll();
+    if(result&&result.ok) msg('✅ Nube actualizada desde el Journal local.',true);
+    else if(result&&result.error) msg('⚠️ No se pudo actualizar la nube.',false);
   });
 
   logoutBtn.addEventListener('click',async()=>{
@@ -1407,14 +1383,14 @@ render();
     msg('Sesión cerrada. Tus datos locales siguen intactos.');
   });
 
-  supabaseClient.auth.onAuthStateChange(async(_event,session)=>{
+  supabaseClient.auth.onAuthStateChange((_event,session)=>{
+    // V3.5.5: autenticar NO sincroniza ni altera datos.
     setLogged(session?.user||null);
-    if(session?.user) setTimeout(()=>cloudSyncAll(),0);
   });
 
-  supabaseClient.auth.getUser().then(async({data})=>{
+  supabaseClient.auth.getUser().then(({data})=>{
+    // V3.5.5: solo recuperamos el estado de sesión.
     setLogged(data?.user||null);
-    if(data?.user) await cloudSyncAll();
   });
 })();
 
@@ -1447,7 +1423,7 @@ render();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.3',
+        version:'V3.5.4',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
