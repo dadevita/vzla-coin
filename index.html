@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.5</title>
+<title>Vzla Coin V3.5.6</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -316,7 +316,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.5</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.6</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -492,7 +492,7 @@ Paga comisión a colaborador
 <label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
 <label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
 </div>
-<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.4, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
+<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.6, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
 <div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
 </div>
 </section>
@@ -669,21 +669,35 @@ const refreshAutoDate=()=>{
 
 ['i_date','r_date','cf_date'].forEach(id=>$(id).value=todayLocal());
 
-let data=JSON.parse(localStorage.getItem('remesas_v32')||'null')||{moves:[],seq:0,started:false,openingId:null}; data.closures=Array.isArray(data.closures)?data.closures:[];
+// V3.5.6 — almacenamiento local AISLADO por origen/ruta.
+// Evita que distintas copias (file://, Vercel u otro archivo HTML) compartan
+// accidentalmente el mismo Journal mediante la clave genérica remesas_v32.
+const LEGACY_DATA_KEY='remesas_v32';
+const DATA_SCOPE=(location.protocol+'//'+location.host+location.pathname).replace(/\/+$/,'');
+function scopeHash(v){let h=2166136261;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
+const DATA_KEY='remesas_v32__'+scopeHash(DATA_SCOPE);
+let rawLocal=localStorage.getItem(DATA_KEY);
+if(rawLocal===null){
+  const legacy=localStorage.getItem(LEGACY_DATA_KEY);
+  if(legacy!==null){
+    try{ localStorage.setItem(DATA_KEY,legacy); rawLocal=legacy; }catch(e){}
+  }
+}
+let data=JSON.parse(rawLocal||'null')||{moves:[],seq:0,started:false,openingId:null}; data.closures=Array.isArray(data.closures)?data.closures:[];
 let calDate=new Date();
 let historyOrder='desc';
 
-function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
+function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
 
 // ============================================================
   // SINCRONIZACION CLOUD · VERSION DEFINITIVA
   // ============================================================
-  // Vzla Coin V3.5.5 — sincronización segura LOCAL → NUBE
+  // Vzla Coin V3.5.6 — sincronización segura LOCAL → NUBE · almacenamiento aislado
   // Iniciar sesión nunca hace PULL ni modifica el Journal local.
   // El botón de sincronización hace explícitamente LOCAL → NUBE.
   // ============================================================
   let cloudSyncBusy=false;
-  const CLOUD_META_KEY='vzla_coin_cloud_sync_v355';
+  const CLOUD_META_KEY='vzla_coin_cloud_sync_v356';
 
   function cloudMeta(){
     try{
@@ -794,46 +808,74 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
   }
 
   async function cloudSyncAll(){
-    if(cloudSyncBusy)return;
+    if(cloudSyncBusy)return {ok:false,reason:'busy'};
     cloudSyncBusy=true;
     try{
       const user=await cloudUser();
-      if(!user){cloudSetStatus('⚪ Sin sesión en la nube.');return;}
+      if(!user){cloudSetStatus('⚪ Sin sesión en la nube.');return {ok:false,reason:'not_authenticated'};}
 
-      // V3.5.5 — LOCAL ES LA FUENTE MAESTRA.
-      // Nunca hacemos PULL automático ni reemplazamos el Journal local.
-      // Antes de tocar la nube guardamos una copia interna de seguridad.
+      // V3.5.6 — la copia LOCAL es la fuente maestra.
+      // Esta operación NUNCA hace PULL ni modifica data/localStorage.
+      // Primero subimos todo lo local; solo después eliminamos sobrantes de nube.
       const snapshot={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.5',
+        version:'V3.5.6',
         savedAt:nowIso(),
+        scope:DATA_SCOPE,
         data:JSON.parse(JSON.stringify(data))
       };
-      try{localStorage.setItem('vzla_coin_precloud_v355',JSON.stringify(snapshot));}catch(e){console.warn('Local safety snapshot error',e);}
+      try{localStorage.setItem('vzla_coin_precloud_v356',JSON.stringify(snapshot));}catch(e){console.warn('Local safety snapshot error',e);}
 
       const localMoves=[...(data.moves||[])];
       const localClosures=[...(data.closures||[])];
+      const localIds=new Set(localMoves.map(m=>String(m.id)));
+      localClosures.forEach(c=>localIds.add('closure-'+String(c.date||'')));
       const totalLocal=localMoves.length+localClosures.length;
 
-      cloudSetStatus(`☁️ Preparando nube… ${totalLocal} registros locales`);
-
-      // La nube anterior puede contener registros que ya no existen localmente.
-      // Se eliminan SOLO los registros del usuario actual y luego se sube
-      // exactamente la copia local. El Journal del navegador jamás se toca.
-      const {error:deleteError}=await supabaseClient
-        .from('journal_moves')
-        .delete()
-        .eq('user_id',user.id);
-      if(deleteError) throw deleteError;
+      cloudSetStatus(`☁️ Subiendo copia local… ${totalLocal} registros`);
 
       let pushed=0;
       for(const m of localMoves){
         const r=await syncMoveToCloud(m);
-        if(r.ok)pushed++;
+        if(!r.ok)throw new Error('No se pudo subir el movimiento '+String(m.id));
+        pushed++;
       }
       for(const c of localClosures){
         const r=await syncClosureToCloud(c);
-        if(r.ok)pushed++;
+        if(!r.ok)throw new Error('No se pudo subir el cierre '+String(c.date));
+        pushed++;
+      }
+
+      // Una vez que todo lo local está arriba, eliminamos de nube únicamente
+      // los registros del usuario que NO pertenecen al snapshot local.
+      const {data:cloudRows,error:fetchError}=await supabaseClient
+        .from('journal_moves')
+        .select('legacy_id,payload')
+        .eq('user_id',user.id);
+      if(fetchError)throw fetchError;
+
+      const extras=(cloudRows||[]).filter(row=>!localIds.has(String(row.legacy_id)));
+      for(const row of extras){
+        const {error:delError}=await supabaseClient
+          .from('journal_moves')
+          .delete()
+          .eq('user_id',user.id)
+          .eq('legacy_id',row.legacy_id);
+        if(delError)throw delError;
+      }
+
+      // Verificación final: la nube debe contener exactamente el mismo conjunto
+      // de IDs que el snapshot local. No se toca el Journal local durante esta fase.
+      const {data:verifyRows,error:verifyError}=await supabaseClient
+        .from('journal_moves')
+        .select('legacy_id')
+        .eq('user_id',user.id);
+      if(verifyError)throw verifyError;
+      const verifyIds=new Set((verifyRows||[]).map(r=>String(r.legacy_id)));
+      const missing=[...localIds].filter(id=>!verifyIds.has(id));
+      const unexpected=[...verifyIds].filter(id=>!localIds.has(id));
+      if(missing.length||unexpected.length){
+        throw new Error(`Verificación fallida · faltan ${missing.length}, sobran ${unexpected.length}`);
       }
 
       const meta=cloudMeta();
@@ -841,7 +883,7 @@ function save(){localStorage.setItem('remesas_v32',JSON.stringify(data))}
       saveCloudMeta(meta);
 
       const now=new Date().toLocaleString('es-CL');
-      cloudSetStatus(`✅ Nube actualizada desde este navegador · ${pushed}/${totalLocal} registros · ${now}`,true);
+      cloudSetStatus(`✅ Nube alineada con este navegador · ${pushed}/${totalLocal} registros · ${now}`,true);
       return {ok:true,pushed,totalLocal};
     }catch(e){
       console.error('Cloud sync error:',e);
@@ -877,7 +919,7 @@ function replay(){
    } else if(m.type==='capital'){
      if((m.currency||'CLP')==='VES'){
        const ves=Number(m.ves)||0;
-       // V3.5.4: un aporte de VES aumenta la cantidad disponible, pero NO debe
+       // V3.5.6: un aporte de VES aumenta la cantidad disponible, pero NO debe
        // entrar al inventario con costo cero porque eso reduciría artificialmente
        // el costo promedio y exageraría la ganancia de las remesas posteriores.
        // Le asignamos el costo promedio vigente al momento del aporte. Así:
@@ -1384,12 +1426,12 @@ render();
   });
 
   supabaseClient.auth.onAuthStateChange((_event,session)=>{
-    // V3.5.5: autenticar NO sincroniza ni altera datos.
+    // V3.5.6: autenticar NO sincroniza ni altera datos.
     setLogged(session?.user||null);
   });
 
   supabaseClient.auth.getUser().then(({data})=>{
-    // V3.5.5: solo recuperamos el estado de sesión.
+    // V3.5.6: solo recuperamos el estado de sesión.
     setLogged(data?.user||null);
   });
 })();
@@ -1419,11 +1461,11 @@ render();
 
   exportBtn.addEventListener('click',()=>{
     try{
-      const raw=localStorage.getItem('remesas_v32');
+      const raw=localStorage.getItem(DATA_KEY);
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.4',
+        version:'V3.5.6',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1433,7 +1475,7 @@ render();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.5.6_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1458,7 +1500,7 @@ render();
           throw new Error('Formato no reconocido');
         }
         if(!confirm('⚠️ Restaurar este respaldo reemplazará los datos actuales del Journal en este navegador. ¿Quieres continuar?')) return;
-        localStorage.setItem('remesas_v32',JSON.stringify(candidate));
+        localStorage.setItem(DATA_KEY,JSON.stringify(candidate));
         alert('✅ Respaldo restaurado. La página se recargará.');
         location.reload();
       }catch(e){
