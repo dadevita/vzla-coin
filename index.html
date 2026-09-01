@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.8</title>
+<title>Vzla Coin V3.5.9</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -316,7 +316,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.8</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.5.9</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -484,16 +484,16 @@ Paga comisión a colaborador
 
 <section id="cash" class="panel">
 <div class="card">
-<h2>Movimiento de caja CLP / VES</h2><p class="muted">Usa esta sección para movimientos que no sean una remesa ni una inversión. Los aportes de capital pueden registrarse en CLP o VES.</p>
+<h2>Movimiento de caja CLP / VES / USDT</h2><p class="muted">Usa esta sección para movimientos que no sean una remesa ni una inversión. Los aportes de capital pueden registrarse en CLP, VES o USDT.</p>
 <div class="grid">
 <label>Tipo<select id="cf_type"><option value="client">Ingreso de cliente</option><option value="capital">Aporte de capital</option><option value="withdraw">Retiro</option><option value="other">Otro ingreso</option></select></label>
-<label>Moneda<select id="cf_currency"><option value="CLP">CLP</option><option value="VES">VES</option></select></label>
+<label>Moneda<select id="cf_currency"><option value="CLP">CLP</option><option value="VES">VES</option><option value="USDT">USDT</option></select></label>
 <label id="cf_clp_wrap">Monto CLP<input id="cf_clp" type="number" value="100000" step="0.01"></label>
-<label id="cf_ves_wrap" style="display:none">Monto VES<input id="cf_ves" type="number" value="0" step="0.01"></label>
+<label id="cf_ves_wrap" style="display:none">Monto VES<input id="cf_ves" type="number" value="0" step="0.01"></label><label id="cf_usdt_wrap" style="display:none">Monto USDT<input id="cf_usdt" type="number" value="0" step="0.0001"></label>
 <label>Referencia<input id="cf_ref" type="text" placeholder="Ej. Donación / Padres / Retiro personal"></label>
 <label>Fecha/hora<input id="cf_date" type="datetime-local"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cf_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
 </div>
-<div class="note">Los retiros VES se descuentan directamente del inventario. Los aportes de capital en VES se incorporan al inventario sin registrarse como remesa ni como ganancia. En V3.5.8, el aporte VES conserva el costo promedio vigente para no alterar artificialmente la rentabilidad.</div>
+<div class="note">Los retiros VES y USDT se descuentan directamente de sus inventarios. Los aportes de capital en VES y USDT se incorporan sin registrarse como remesa ni como ganancia y conservan el costo promedio vigente de su inventario para no alterar artificialmente la rentabilidad.</div>
 <div class="actions"><button class="btn primary" id="cf_add">Registrar movimiento</button></div><div class="note" id="cf_msg"></div>
 </div>
 </section>
@@ -670,7 +670,7 @@ const refreshAutoDate=()=>{
 
 ['i_date','r_date','cf_date'].forEach(id=>$(id).value=todayLocal());
 
-// V3.5.8 — almacenamiento local AISLADO por origen/ruta.
+// V3.5.9 — almacenamiento local AISLADO por origen/ruta.
 // Evita que distintas copias (file://, Vercel u otro archivo HTML) compartan
 // accidentalmente el mismo Journal mediante la clave genérica remesas_v32.
 const LEGACY_DATA_KEY='remesas_v32';
@@ -692,7 +692,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
 
 // ============================================================
   // ============================================================
-  // V3.5.8 — SINCRONIZACIÓN ONLINE MULTIDISPOSITIVO
+  // V3.5.9 — SINCRONIZACIÓN ONLINE MULTIDISPOSITIVO
   // ============================================================
   // Supabase = fuente de verdad compartida.
   // localStorage = caché/respaldo del dispositivo.
@@ -848,7 +848,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     }
 
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.5.8',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.5.9',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
       localStorage.setItem('vzla_coin_precloud_v357',JSON.stringify(snapshot));
     }catch(e){console.warn('Local safety snapshot error',e);}
 
@@ -1046,36 +1046,42 @@ function replay(){
      s.cash+=Number(m.clp)||0;s.ves+=Number(m.ves)||0;
      // Initial VES have unknown cost in this version; kept separate from purchased inventory.
    } else if(m.type==='capital'){
-     if((m.currency||'CLP')==='VES'){
-       const ves=Number(m.ves)||0;
-       // V3.5.8: un aporte de VES aumenta la cantidad disponible, pero NO debe
-       // entrar al inventario con costo cero porque eso reduciría artificialmente
-       // el costo promedio y exageraría la ganancia de las remesas posteriores.
-       // Le asignamos el costo promedio vigente al momento del aporte. Así:
-       // - la caja VES aumenta;
-       // - el costo promedio NO cambia;
-       // - el aporte no genera ganancia ni inversión;
-       // - las remesas posteriores conservan el mismo costo unitario real.
-       const unitCost=s.avg||0;
-       s.ves+=ves;
-       s.cost+=ves*unitCost;
-       m.vesUnitCost=unitCost;
-       m.vesCost=ves*unitCost;
-     }else{
-       s.cash+=Number(m.clp)||0;
-     }
+      const currency=m.currency||'CLP';
+      if(currency==='VES'){
+        const ves=Number(m.ves)||0;
+        const unitCost=s.avg||0;
+        s.ves+=ves;
+        s.cost+=ves*unitCost;
+        m.vesUnitCost=unitCost;
+        m.vesCost=ves*unitCost;
+      }else if(currency==='USDT'){
+        const usdt=Number(m.usdt)||0;
+        // Aporte USDT: aumenta cantidad y conserva el costo promedio vigente.
+        const unitCost=s.usdtAvg||0;
+        s.usdt+=usdt;
+        s.usdtCost+=usdt*unitCost;
+        m.usdtUnitCost=unitCost;
+        m.usdtCost=usdt*unitCost;
+      }else{
+        s.cash+=Number(m.clp)||0;
+      }
    } else if(m.type==='client'){
      s.cash+=Number(m.clp)||0;s.received+=Number(m.clp)||0;
    } else if(m.type==='other'){
      s.cash+=Number(m.clp)||0;
    } else if(m.type==='withdraw'){
-     if((m.currency||'CLP')==='VES'){
-       const ves=Number(m.ves)||0;
-       s.ves-=ves;
-       s.cost=Math.max(0,s.cost-(ves*s.avg));
-     }else{
-       s.cash-=Number(m.clp)||0;
-     }
+      const currency=m.currency||'CLP';
+      if(currency==='VES'){
+        const ves=Number(m.ves)||0;
+        s.ves-=ves;
+        s.cost=Math.max(0,s.cost-(ves*s.avg));
+      }else if(currency==='USDT'){
+        const usdt=Number(m.usdt)||0;
+        s.usdt=Math.max(0,s.usdt-usdt);
+        s.usdtCost=Math.max(0,s.usdtCost-(usdt*s.usdtAvg));
+      }else{
+        s.cash-=Number(m.clp)||0;
+      }
    } else if(m.type==='investment'){
      // Legacy V3.4.4 investment remains fully compatible.
      const ves=investmentVES(m);
@@ -1282,12 +1288,12 @@ function renderHistory(){
    if(m.type==='remittance')result=money(m.result)+' CLP';
    else if(m.type==='usdt_purchase')result='+'+num4(m.usdt||0)+' USDT';
    else if(m.type==='usdt_sale')result=money(m.usdtCost||0)+' CLP';
-   const isVesWithdraw=m.type==='withdraw'&&(m.currency||'CLP')==='VES';
-   const clp=m.type==='withdraw'&&!isVesWithdraw?-Number(m.clp):Number(m.clp)||0;
+   const isVesWithdraw=m.type==='withdraw'&&(m.currency||'CLP')==='VES'; const isUsdtMove=(m.type==='withdraw'||m.type==='capital')&&(m.currency||'CLP')==='USDT';
+   const clp=m.type==='withdraw'&&!isVesWithdraw&&!isUsdtMove?-Number(m.clp):Number(m.clp)||0;
    const ves=isVesWithdraw?-Number(m.ves):(m.ves?Number(m.ves):0);
    const displayVes=m.type==='usdt_sale'?(Number(m.ves)||0):ves;
    const rate=m.type==='usdt_sale'?(Number(m.sell)||0):Number(m.rate)||0;
-   return `<tr><td>${esc(m.date.replace('T',' '))}</td><td>${type}${isVesWithdraw?' VES':''}</td><td>${clp?money(clp):'—'}</td><td>${displayVes?money(displayVes):'—'}</td><td>${rate?rateFmt(rate):'—'}</td><td>${result}</td><td>${esc(m.ref||'')}</td><td><button class="btn small" onclick="editMove('${m.id}')">✏️</button> <button class="btn small danger" onclick="deleteMove('${m.id}')">🗑️</button></td></tr>`;
+   const label=type+(isVesWithdraw?' VES':isUsdtMove?' USDT':''); return `<tr><td>${esc(m.date.replace('T',' '))}</td><td>${label}</td><td>${clp?money(clp):'—'}</td><td>${displayVes?money(displayVes):'—'}</td><td>${rate?rateFmt(rate):'—'}</td><td>${result}</td><td>${esc(m.ref||'')}</td><td><button class="btn small" onclick="editMove('${m.id}')">✏️</button> <button class="btn small danger" onclick="deleteMove('${m.id}')">🗑️</button></td></tr>`;
  }).join('');
 }
 function renderCalendar(days){
@@ -1312,7 +1318,7 @@ window.editMove=function(id){
  const m=data.moves.find(x=>x.id===id);if(!m)return;
  if(m.type==='opening'){alert('Para modificar el saldo inicial, usa “Borrar todo el Journal” y vuelve a establecerlo.');return}
  const labels={capital:'Aporte de capital',client:'Ingreso de cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión (legacy)',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa'};
- let body=`<input type="hidden" id="edit_id" value="${esc(id)}"><label>Fecha/hora<input id="e_date" type="datetime-local" value="${esc(m.date)}"></label><label style="margin-top:12px">Tipo<select id="e_type">${Object.entries(labels).map(([v,t])=>`<option value="${v}" ${m.type===v?'selected':''}>${t}</option>`).join('')}</select></label><div class="grid" style="margin-top:12px"><label>CLP<input id="e_clp" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>VES<input id="e_ves" type="number" value="${Number(m.ves)||0}" step="0.01"></label></div><label style="margin-top:12px">Moneda<select id="e_currency"><option value="CLP" ${((m.currency||'CLP')==='CLP')?'selected':''}>CLP</option><option value="VES" ${((m.currency||'CLP')==='VES')?'selected':''}>VES</option></select></label><label style="margin-top:12px">Tasa pública<input id="e_rate" type="number" value="${Number(m.rate)||0}" step="0.000001"></label><label style="margin-top:12px">Referencia<input id="e_ref" type="text" value="${esc(m.ref||'')}"></label>`;
+ let body=`<input type="hidden" id="edit_id" value="${esc(id)}"><label>Fecha/hora<input id="e_date" type="datetime-local" value="${esc(m.date)}"></label><label style="margin-top:12px">Tipo<select id="e_type">${Object.entries(labels).map(([v,t])=>`<option value="${v}" ${m.type===v?'selected':''}>${t}</option>`).join('')}</select></label><div class="grid" style="margin-top:12px"><label>CLP<input id="e_clp" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>VES<input id="e_ves" type="number" value="${Number(m.ves)||0}" step="0.01"></label><label>USDT<input id="e_usdt" type="number" value="${Number(m.usdt)||0}" step="0.0001"></label></div><label style="margin-top:12px">Moneda<select id="e_currency"><option value="CLP" ${((m.currency||'CLP')==='CLP')?'selected':''}>CLP</option><option value="VES" ${((m.currency||'CLP')==='VES')?'selected':''}>VES</option><option value="USDT" ${((m.currency||'CLP')==='USDT')?'selected':''}>USDT</option></select></label><label style="margin-top:12px">Tasa pública<input id="e_rate" type="number" value="${Number(m.rate)||0}" step="0.000001"></label><label style="margin-top:12px">Referencia<input id="e_ref" type="text" value="${esc(m.ref||'')}"></label>`;
  if(m.type==='investment')body+=`<div class="grid" style="margin-top:12px"><label>Compra Binance<input id="e_buy" type="number" value="${m.buy}" step="0.01"></label><label>Venta Binance<input id="e_sell" type="number" value="${m.sell}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee" type="number" value="${m.fee}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank" type="number" value="${m.bank}" step="0.01"></label></div>`;
   if(m.type==='usdt_purchase')body+=`<div class="grid" style="margin-top:12px"><label>CLP invertidos<input id="e_clp_purchase" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>Compra Binance CLP/USDT<input id="e_buy_purchase" type="number" value="${Number(m.buy)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_purchase" type="number" value="${Number(m.fee)||0}" step="0.0001"></label></div>`;
   if(m.type==='usdt_sale')body+=`<div class="grid" style="margin-top:12px"><label>USDT vendidos<input id="e_usdt_sale" type="number" value="${Number(m.usdt)||0}" step="0.01"></label><label>Venta Binance VES/USDT<input id="e_sell_sale" type="number" value="${Number(m.sell)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_sale" type="number" value="${Number(m.fee)||0}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank_sale" type="number" value="${Number(m.bank)||0}" step="0.01"></label></div>`;
@@ -1322,7 +1328,7 @@ window.editMove=function(id){
  $('cancelEdit').onclick=()=>closeModal();
  $('saveEdit').onclick=()=>{
    m.date=$('e_date').value;m.type=$('e_type').value;m.clp=Number($('e_clp').value)||0;m.ves=Number($('e_ves').value)||0;m.rate=Number($('e_rate').value)||0;m.ref=$('e_ref').value;
-   if(m.type==='withdraw'||m.type==='capital'){m.currency=$('e_currency').value;if(m.currency==='VES'){m.clp=0}else{m.ves=0}}
+   if(m.type==='withdraw'||m.type==='capital'){m.currency=$('e_currency').value;if(m.currency==='VES'){m.clp=0;m.usdt=0}else if(m.currency==='USDT'){m.clp=0;m.ves=0;m.usdt=Number($('e_usdt')?.value)||0}else{m.ves=0;m.usdt=0}}
    if(m.type==='investment'){m.buy=Number($('e_buy').value)||0;m.sell=Number($('e_sell').value)||0;m.fee=Number($('e_fee').value)||0;m.bank=Number($('e_bank').value)||0}
    if(m.type==='usdt_purchase'){m.clp=Number($('e_clp_purchase').value)||0;m.buy=Number($('e_buy_purchase').value)||0;m.fee=Number($('e_fee_purchase').value)||0;m.usdt=m.buy>0?Math.max(0,m.clp/m.buy-m.fee):0}
    if(m.type==='usdt_sale'){m.usdt=Number($('e_usdt_sale').value)||0;m.sell=Number($('e_sell_sale').value)||0;m.fee=Number($('e_fee_sale').value)||0;m.bank=Number($('e_bank_sale').value)||0}
@@ -1449,13 +1455,14 @@ $('r_add').onclick=()=>{
 $('cf_add').onclick=()=>{
  if(!data.started){$('cf_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
  const type=$('cf_type').value,currency=$('cf_currency').value;
- const clp=Number($('cf_clp').value)||0,ves=Number($('cf_ves').value)||0;
- if((currency==='CLP'&&!clp)||(currency==='VES'&&!ves)){$('cf_msg').textContent='Introduce un monto válido.';return}
+ const clp=Number($('cf_clp').value)||0,ves=Number($('cf_ves').value)||0,usdt=Number($('cf_usdt')?.value)||0;
+ if((currency==='CLP'&&!clp)||(currency==='VES'&&!ves)||(currency==='USDT'&&!usdt)){$('cf_msg').textContent='Introduce un monto válido.';return}
  const s=replay().s;
- if(type!=='withdraw'&&type!=='capital'&&currency==='VES'){$('cf_msg').textContent='⚠️ Los ingresos de VES solo están habilitados aquí para aportes de capital o retiros. Para incorporar VES mediante una compra, usa Inversión.';return}
+ if(type!=='withdraw'&&type!=='capital'&&currency!=='CLP'){$('cf_msg').textContent='⚠️ VES y USDT en esta sección solo están habilitados para aportes de capital o retiros.';return}
  if(type==='withdraw'&&currency==='CLP'&&clp>s.cash){$('cf_msg').textContent='⚠️ No puedes retirar más de la caja disponible.';return}
  if(type==='withdraw'&&currency==='VES'&&ves>s.ves){$('cf_msg').textContent='⚠️ No puedes retirar más VES que el inventario disponible.';return}
- const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('cf_date_auto')&&$('cf_date_auto').checked?todayLocal():$('cf_date').value),type,clp:currency==='CLP'?clp:0,ves:currency==='VES'?ves:0,currency,ref:$('cf_ref').value};
+ if(type==='withdraw'&&currency==='USDT'&&usdt>s.usdt+1e-9){$('cf_msg').textContent='⚠️ No puedes retirar más USDT que el inventario disponible.';return}
+ const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('cf_date_auto')&&$('cf_date_auto').checked?todayLocal():$('cf_date').value),type,clp:currency==='CLP'?clp:0,ves:currency==='VES'?ves:0,usdt:currency==='USDT'?usdt:0,currency,ref:$('cf_ref').value};
  data.moves.push(newMove);
  save();$('cf_msg').textContent='✅ Movimiento registrado localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('cf_msg'));
 };
@@ -1483,7 +1490,7 @@ render();
 restoreLastRemittanceForm();
 previewRemittance();
 
-// Vzla Coin Cloud — autenticación + sincronización online V3.5.8.
+// Vzla Coin Cloud — autenticación + sincronización online V3.5.9.
 (function(){
   const emailEl=document.getElementById('cloudEmail');
   const passEl=document.getElementById('cloudPassword');
@@ -1629,7 +1636,7 @@ previewRemittance();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.8',
+        version:'V3.5.9',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1639,7 +1646,7 @@ previewRemittance();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.5.8_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.5.9_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1845,15 +1852,16 @@ previewRemittance();
 })();
 
 (function(){
-  const type=$('cf_type'),cur=$('cf_currency'),clpW=$('cf_clp_wrap'),vesW=$('cf_ves_wrap');
+  const type=$('cf_type'),cur=$('cf_currency'),clpW=$('cf_clp_wrap'),vesW=$('cf_ves_wrap'),usdtW=$('cf_usdt_wrap');
   function syncCashFields(){
-    const isVes=cur&&cur.value==='VES';
-    if(clpW)clpW.style.display=isVes?'none':'block';
+    const currency=cur&&cur.value;
+    const isVes=currency==='VES',isUsdt=currency==='USDT';
+    if(clpW)clpW.style.display=(isVes||isUsdt)?'none':'block';
     if(vesW)vesW.style.display=isVes?'block':'none';
-    if(type&&type.value!=='withdraw'&&type.value!=='capital'&&isVes){
+    if(usdtW)usdtW.style.display=isUsdt?'block':'none';
+    if(type&&type.value!=='withdraw'&&type.value!=='capital'&&(isVes||isUsdt)){
       cur.value='CLP';
-      if(clpW)clpW.style.display='block';
-      if(vesW)vesW.style.display='none';
+      syncCashFields();
     }
   }
   if(type)type.addEventListener('change',syncCashFields);
