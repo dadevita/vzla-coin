@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.5.9</title>
+<title>Vzla Coin V3.6.0</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -19,6 +19,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}.summary .big{font-size:30px;font-weight:800}
 .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.modal-back.show{display:flex}.modal{background:#fff;border-radius:16px;max-width:680px;width:100%;padding:20px;max-height:90vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center}
 .note{font-size:12px;color:var(--muted)}
+
+.vz-commission-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.vz-analytics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.vz-analytics-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.vz-ranking{display:grid;gap:8px}.vz-ranking-row{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--vz-border)}.vz-ranking-row:last-child{border-bottom:0}.vz-ranking-rank{font-weight:800;color:var(--vz-accent,#8b6cff)}.vz-ranking-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vz-ranking-value{text-align:right;font-weight:700}
+.vz-positive{color:#48e0a0}.vz-negative{color:#ff6b7a}
+@media(max-width:760px){.vz-commission-kpis,.vz-analytics-kpis{grid-template-columns:1fr}.vz-analytics-head{flex-direction:column}}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.grid,.summary{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
 
 /* =========================
@@ -316,7 +323,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.5.9</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.6.0</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -347,7 +354,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 <button class="tab" data-tab="remittance">4 · Remesa</button>
 <button class="tab" data-tab="cash">5 · Caja</button>
 <button class="tab" data-tab="history">6 · Movimientos</button>
-<button class="tab" data-tab="daily">7 · Bitácora diaria</button><button class="tab" data-tab="closing">8 · Cierre diario</button>
+<button class="tab" data-tab="daily">7 · Bitácora diaria</button><button class="tab" data-tab="closing">8 · Cierre diario</button><button class="tab" data-tab="commissions">9 · Comisiones</button><button class="tab" data-tab="analytics">10 · Análisis</button>
 </div>
 
 <section id="calc" class="panel active">
@@ -454,7 +461,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 <h2>Nueva remesa</h2><p class="muted">Cada cliente puede tener una tasa pública distinta.</p>
 <div class="grid">
 <label>CLP recibido del cliente<input id="r_clp" type="number" value="46125" step="1"></label>
-<label>Tasa publicada (VES/CLP)<input id="r_rate" type="number" value="0.9225" step="0.000001"></label>
+<label>Tasa publicada (VES/CLP)<input id="r_rate" type="number" value="0.9225" step="0.000001" readonly><small class="muted">Se calcula automáticamente: VES entregados ÷ CLP recibidos.</small></label>
 <label>VES entregados<input id="r_ves" type="number" value="50000" step="0.01"></label>
 <label>Cliente / referencia<input id="r_ref" type="text" placeholder="Cliente 001"></label>
 <label style="display:flex;align-items:center;gap:8px;margin-top:7px">
@@ -582,7 +589,7 @@ Paga comisión a colaborador
   <p class="muted">Conciliación del día. El sistema calcula los saldos teóricos y tú introduces los saldos reales que ves en tus bancos.</p>
   <div class="grid">
     <label>Fecha del cierre<input id="close_date" type="date"></label>
-    <label>Hora del cierre<input id="close_time" type="time"></label>
+    <label>Hora del cierre<input id="close_time" type="time"></label><label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="close_time_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
   </div>
 
   <div class="vz-close-grid" style="margin-top:14px">
@@ -640,6 +647,75 @@ Paga comisión a colaborador
 </div>
 </section>
 
+
+<section id="commissions" class="panel">
+<div class="card">
+  <h2>💰 Comisiones de colaboradores</h2>
+  <p class="muted">Las comisiones se acumulan cuando registras una remesa con colaborador. Aquí registras los cortes/pagos que efectivamente haces. El pago reduce la caja CLP, pero <b>no vuelve a descontar la ganancia</b>: la comisión ya fue reconocida al registrar la remesa.</p>
+  <div class="vz-commission-kpis">
+    <div class="metric"><div class="label">Comisiones pendientes</div><div class="value" id="cm_pending_total">0,00 CLP</div></div>
+    <div class="metric"><div class="label">Pagado este mes</div><div class="value" id="cm_paid_month">0,00 CLP</div></div>
+    <div class="metric"><div class="label">Colaboradores</div><div class="value" id="cm_staff_count">0</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Registrar pago / corte</h2>
+  <div class="grid">
+    <label>Colaborador<input id="cm_name" type="text" value="Yoselin Mendez" placeholder="Nombre del colaborador"></label>
+    <label>Monto pagado (CLP)<input id="cm_amount" type="number" value="20000" step="0.01" min="0"></label>
+    <label>Fecha/hora<input id="cm_date" type="datetime-local"></label>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:var(--vz-muted,#9292a5)"><input id="cm_date_auto" type="checkbox" checked class="vz-auto-time" style="width:auto;margin:0">Usar hora actual del computador al registrar</label>
+    <label>Referencia / nota<input id="cm_ref" type="text" placeholder="Ej. Corte 14/10 · retiro parcial"></label>
+  </div>
+  <div class="callout" id="cm_preview">Selecciona un colaborador para ver su saldo pendiente.</div>
+  <div class="actions"><button class="btn primary" id="cm_add">Registrar pago</button></div>
+  <div class="note" id="cm_msg"></div>
+</div>
+
+<div class="card">
+  <h2>Saldo por colaborador</h2>
+  <div class="tablewrap"><table><thead><tr><th>Colaborador</th><th>Generado</th><th>Pagado</th><th>Pendiente</th><th>Remesas</th></tr></thead><tbody id="cm_balances_body"><tr><td colspan="5" class="muted">Aún no hay comisiones.</td></tr></tbody></table></div>
+</div>
+
+<div class="card">
+  <h2>Historial de pagos</h2>
+  <div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Colaborador</th><th>Monto</th><th>Referencia</th><th>Acciones</th></tr></thead><tbody id="cm_payments_body"><tr><td colspan="5" class="muted">Aún no hay pagos registrados.</td></tr></tbody></table></div>
+</div>
+</section>
+
+<section id="analytics" class="panel">
+<div class="card">
+  <div class="vz-analytics-head"><div><h2>📈 Análisis y crecimiento</h2><p class="muted">Métricas construidas a partir de las remesas registradas. Para que los datos de clientes sean fiables, usa siempre el mismo nombre o identificador en “Cliente / referencia”.</p></div></div>
+  <div class="grid3 vz-analytics-kpis">
+    <div class="metric"><div class="label">Clientes únicos</div><div class="value" id="an_clients">0</div></div>
+    <div class="metric"><div class="label">Remesas</div><div class="value" id="an_remittances">0</div></div>
+    <div class="metric"><div class="label">Ticket promedio</div><div class="value" id="an_avg_ticket">0,00 CLP</div></div>
+    <div class="metric"><div class="label">Frecuencia promedio</div><div class="value" id="an_avg_freq">0,00 remesas/cliente</div></div>
+    <div class="metric"><div class="label">Clientes recurrentes</div><div class="value" id="an_repeat">0</div><small id="an_repeat_pct">0,00% de clientes</small></div>
+    <div class="metric"><div class="label">CLP procesados</div><div class="value" id="an_clp">0,00 CLP</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Clientes y comportamiento</h2>
+  <div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Remesas</th><th>Total CLP</th><th>Promedio</th><th>VES enviados</th><th>Última remesa</th><th>Frecuencia</th></tr></thead><tbody id="an_clients_body"><tr><td colspan="7" class="muted">Aún no hay clientes identificados.</td></tr></tbody></table></div>
+</div>
+
+<div class="card">
+  <h2>🏆 Clientes de mayor valor</h2>
+  <div class="grid">
+    <div><h3 style="margin-top:0">Por CLP enviado</h3><div id="an_top_value"><div class="muted">Sin datos.</div></div></div>
+    <div><h3 style="margin-top:0">Por frecuencia</h3><div id="an_top_frequency"><div class="muted">Sin datos.</div></div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Evolución mensual</h2>
+  <div class="tablewrap"><table><thead><tr><th>Mes</th><th>Clientes</th><th>Remesas</th><th>CLP procesados</th><th>Ticket promedio</th><th>Ganancia</th></tr></thead><tbody id="an_monthly_body"><tr><td colspan="6" class="muted">Aún no hay datos.</td></tr></tbody></table></div>
+</div>
+</section>
+
 <div class="modal-back" id="modalBack"><div class="modal"><div class="modal-head"><h2>Editar movimiento</h2><button class="btn" id="closeModal">✕</button></div><div id="modalBody"></div></div></div>
 </div>
 
@@ -677,6 +753,7 @@ const LEGACY_DATA_KEY='remesas_v32';
 const DATA_SCOPE=(location.protocol+'//'+location.host+location.pathname).replace(/\/+$/,'');
 function scopeHash(v){let h=2166136261;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
 const DATA_KEY='remesas_v32__'+scopeHash(DATA_SCOPE);
+const REMITTANCE_DRAFT_KEY='vzla_coin_remittance_draft_v360__'+scopeHash(DATA_SCOPE);
 let rawLocal=localStorage.getItem(DATA_KEY);
 if(rawLocal===null){
   const legacy=localStorage.getItem(LEGACY_DATA_KEY);
@@ -848,7 +925,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     }
 
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.5.9',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.0',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
       localStorage.setItem('vzla_coin_precloud_v357',JSON.stringify(snapshot));
     }catch(e){console.warn('Local safety snapshot error',e);}
 
@@ -1099,6 +1176,10 @@ function replay(){
      s.usdt=Math.max(0,s.usdt-totalUsdt);s.usdtCost=Math.max(0,s.usdtCost-costUsdt);
      s.ves+=netVes;s.cost+=costUsdt;
      m.ves=netVes;m.bankFee=bankFee;m.usdtCost=costUsdt;m.grossVes=grossVes;
+   } else if(m.type==='commission_payment'){
+     const amount=Number(m.clp)||0;
+     s.cash-=amount;
+     m.result=0;
    } else if(m.type==='remittance'){
      const ves=Number(m.ves)||0;
      const bankPct=Number(m.bankPct)||0;
@@ -1214,6 +1295,7 @@ function renderCloseHistory(){
 }
 $('close_date').value=todayLocal().slice(0,10);
 $('close_time').value=todayLocal().slice(11,16);
+if($('close_time_auto')) $('close_time_auto').addEventListener('change',()=>{if($('close_time_auto').checked)$('close_time').value=todayLocal().slice(11,16)});
 $('close_preview').onclick=()=>{closePreview()};
 $('close_real_clp').addEventListener('input',closePreview);
 $('close_real_ves').addEventListener('input',closePreview);
@@ -1227,8 +1309,11 @@ $('close_save').onclick=()=>{
  if(!x||x.realClp===null||x.realVes===null){$('close_msg').textContent='⚠️ Introduce el saldo real CLP y VES antes de cerrar el día.';return}
  const existing=(data.closures||[]).find(c=>c.date===x.day);
  if(existing&&!confirm('Ya existe un cierre para este día. ¿Quieres reemplazarlo con la conciliación actual?'))return;
+ const autoCloseTime=$('close_time_auto')&&$('close_time_auto').checked;
+ const closeTime=autoCloseTime?todayLocal().slice(11,16):$('close_time').value;
+ $('close_time').value=closeTime;
  const snapshot={
-   date:x.day,closedAt:new Date().toISOString(),
+   date:x.day,closeTime,closedAt:(x.day+'T'+closeTime+':00'),
    realClp:x.realClp,realVes:x.realVes,
    systemClp:x.s.cash,systemVes:x.s.ves,
    diffClp:x.dc,diffVes:x.dv,status:x.status,statusLabel:x.statusLabel,profit:x.d.profit,
@@ -1248,6 +1333,7 @@ renderCloseHistory();
 // Populate the remittance form only at controlled moments (initial load/cloud load/after saving).
 // IMPORTANT: do not call this from render(), because render() also runs during online polling.
 function restoreLastRemittanceForm(){
+ if(restoreRemittanceDraft()) return;
  const remittances=(data.moves||[]).filter(m=>m&&m.type==='remittance');
  if(!remittances.length){
    // No previous remittance: keep the current/default numeric values.
@@ -1260,7 +1346,7 @@ function restoreLastRemittanceForm(){
    return sb>sa?b:a;
  });
  if($('r_clp')) $('r_clp').value=Number(last.clp)||0;
- if($('r_rate')) $('r_rate').value=Number(last.rate)||0;
+ updateRemittanceRate();
  if($('r_ves')) $('r_ves').value=Number(last.ves)||0;
  if($('r_bank_charge')) $('r_bank_charge').checked=(Number(last.bankPct)||0)>0;
  if($('r_staff_charge')) $('r_staff_charge').checked=Number(last.staffPct)||0>0;
@@ -1271,17 +1357,108 @@ function restoreLastRemittanceForm(){
  if($('r_ref')) $('r_ref').value='';
 }
 
+
+function commissionStats(){
+  const by={};
+  for(const m of (data.moves||[])){
+    if(!m)continue;
+    if(m.type==='remittance' && Number(m.staffFee)>0){
+      const name=String(m.staffName||'Sin nombre').trim()||'Sin nombre';
+      const key=name.toLowerCase();
+      if(!by[key])by[key]={name,total:0,paid:0,remittances:0};
+      by[key].total+=Number(m.staffFee)||0;by[key].remittances++;
+    }else if(m.type==='commission_payment'){
+      const name=String(m.staffName||'Sin nombre').trim()||'Sin nombre';
+      const key=name.toLowerCase();
+      if(!by[key])by[key]={name,total:0,paid:0,remittances:0};
+      by[key].paid+=Number(m.clp)||0;
+    }
+  }
+  return Object.values(by).map(x=>({...x,pending:x.total-x.paid})).sort((a,b)=>b.pending-a.pending||b.total-a.total);
+}
+function selectedCommissionPending(name){
+  const key=String(name||'').trim().toLowerCase();
+  const row=commissionStats().find(x=>x.name.toLowerCase()===key);
+  return row?row.pending:0;
+}
+function renderCommissions(){
+  const rows=commissionStats();
+  const total=rows.reduce((a,x)=>a+x.pending,0);
+  const month=todayLocal().slice(0,7);
+  const paidMonth=(data.moves||[]).filter(m=>m.type==='commission_payment'&&String(m.date||'').slice(0,7)===month).reduce((a,m)=>a+(Number(m.clp)||0),0);
+  if($('cm_pending_total'))$('cm_pending_total').textContent=money(total)+' CLP';
+  if($('cm_paid_month'))$('cm_paid_month').textContent=money(paidMonth)+' CLP';
+  if($('cm_staff_count'))$('cm_staff_count').textContent=String(rows.length);
+  const body=$('cm_balances_body');
+  if(body)body.innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.name)}</td><td>${money(x.total)} CLP</td><td>${money(x.paid)} CLP</td><td class="${x.pending<0?'vz-negative':'vz-positive'}">${money(x.pending)} CLP</td><td>${x.remittances}</td></tr>`).join(''):'<tr><td colspan="5" class="muted">Aún no hay comisiones.</td></tr>';
+  const payments=(data.moves||[]).filter(m=>m.type==='commission_payment').sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.seq)-Number(a.seq));
+  const pb=$('cm_payments_body');
+  if(pb)pb.innerHTML=payments.length?payments.map(m=>`<tr><td>${esc(String(m.date||'').replace('T',' '))}</td><td>${esc(m.staffName||'')}</td><td>${money(m.clp)} CLP</td><td>${esc(m.ref||'')}</td><td><button class="btn small" onclick="editMove('${esc(m.id)}')">Editar</button> <button class="btn small danger" onclick="deleteMove('${esc(m.id)}')">Eliminar</button></td></tr>`).join(''):'<tr><td colspan="5" class="muted">Aún no hay pagos registrados.</td></tr>';
+  const name=$('cm_name')?.value||'';
+  const pending=selectedCommissionPending(name);
+  if($('cm_preview'))$('cm_preview').innerHTML=name.trim()?`Pendiente de <b>${esc(name.trim())}</b>: <b>${money(pending)} CLP</b>${pending>0?' · Un pago de 20.000 dejaría '+money(pending-20000)+' CLP pendientes.':''}`:'Selecciona un colaborador para ver su saldo pendiente.';
+}
+function registerCommissionPayment(){
+  if(!data.started){$('cm_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return;}
+  const name=String($('cm_name').value||'').trim(),amount=Number($('cm_amount').value)||0;
+  if(!name||!amount){$('cm_msg').textContent='Completa colaborador y monto.';return;}
+  const pending=selectedCommissionPending(name);
+  const s=replay().s;
+  if(amount>s.cash+1e-9){$('cm_msg').textContent='⚠️ Caja CLP insuficiente. Disponibles: '+money(s.cash)+' CLP.';return;}
+  if(pending<=0.01){$('cm_msg').textContent='⚠️ No hay comisión pendiente registrada para '+name+'.';return;}
+  if(amount>pending+0.01){$('cm_msg').textContent='⚠️ El pago supera la comisión pendiente de '+money(pending)+' CLP para '+name+'.';return;}
+  const date=$('cm_date_auto')&&$('cm_date_auto').checked?todayLocal():$('cm_date').value;
+  const m={id:'m'+(++data.seq),seq:data.seq,date,type:'commission_payment',clp:amount,ves:0,usdt:0,currency:'CLP',staffName:name,ref:String($('cm_ref').value||'').trim()};
+  data.moves.push(m);save();$('cm_msg').textContent='✅ Pago de comisión registrado.';refreshCommissionDate();render();syncAndConfirm(m,$('cm_msg'));
+  $('cm_amount').value='';$('cm_ref').value='';
+}
+function refreshCommissionDate(){if($('cm_date_auto')?.checked)$('cm_date').value=todayLocal();}
+function renderAnalytics(){
+  const rem=(data.moves||[]).filter(m=>m&&m.type==='remittance');
+  const by={};
+  for(const m of rem){
+    const raw=String(m.ref||'').trim();
+    const name=raw||'Cliente sin identificar';
+    const key=name.toLowerCase();
+    if(!by[key])by[key]={name,totalClp:0,ves:0,count:0,last:'',dates:[]};
+    const x=by[key];x.totalClp+=Number(m.clp)||0;x.ves+=Number(m.ves)||0;x.count++;if(!x.last||String(m.date)>x.last)x.last=String(m.date);x.dates.push(String(m.date||'').slice(0,10));
+  }
+  const clients=Object.values(by).sort((a,b)=>b.totalClp-a.totalClp);
+  const totalClp=rem.reduce((a,m)=>a+(Number(m.clp)||0),0);
+  const repeat=clients.filter(x=>x.count>=2).length;
+  if($('an_clients'))$('an_clients').textContent=String(clients.length);
+  if($('an_remittances'))$('an_remittances').textContent=String(rem.length);
+  if($('an_avg_ticket'))$('an_avg_ticket').textContent=money(rem.length?totalClp/rem.length:0)+' CLP';
+  if($('an_avg_freq'))$('an_avg_freq').textContent=(clients.length?rem.length/clients.length:0).toFixed(2)+' remesas/cliente';
+  if($('an_repeat'))$('an_repeat').textContent=String(repeat);
+  if($('an_repeat_pct'))$('an_repeat_pct').textContent=(clients.length?repeat/clients.length*100:0).toFixed(2)+'% de clientes';
+  if($('an_clp'))$('an_clp').textContent=money(totalClp)+' CLP';
+  const cb=$('an_clients_body');
+  if(cb)cb.innerHTML=clients.length?clients.map(x=>{const avg=x.totalClp/x.count;const first=x.dates.slice().sort()[0];const days=(first&&x.last)?Math.max(1,Math.round((new Date(x.last.slice(0,10))-new Date(first))/86400000)):0;const freq=x.count>1?days/(x.count-1):null;return `<tr><td>${esc(x.name)}</td><td>${x.count}</td><td>${money(x.totalClp)} CLP</td><td>${money(avg)} CLP</td><td>${money(x.ves)} VES</td><td>${esc(x.last.replace('T',' '))}</td><td>${freq===null?'—':freq.toFixed(0)+' días'}</td></tr>`;}).join(''):'<tr><td colspan="7" class="muted">Aún no hay clientes identificados.</td></tr>';
+  const rank=(arr,metric,fmt)=>arr.slice(0,5).map((x,i)=>`<div class="vz-ranking-row"><div class="vz-ranking-rank">${i+1}</div><div class="vz-ranking-name" title="${esc(x.name)}">${esc(x.name)}</div><div class="vz-ranking-value">${fmt(x[metric])}</div></div>`).join('');
+  if($('an_top_value'))$('an_top_value').innerHTML=clients.length?'<div class="vz-ranking">'+rank(clients,'totalClp',v=>money(v)+' CLP')+'</div>':'<div class="muted">Sin datos.</div>';
+  const freq=clients.slice().sort((a,b)=>b.count-a.count||b.totalClp-a.totalClp);
+  if($('an_top_frequency'))$('an_top_frequency').innerHTML=freq.length?'<div class="vz-ranking">'+rank(freq,'count',v=>v+' rem.')+'</div>':'<div class="muted">Sin datos.</div>';
+  const months={};
+  const profitById={};
+  replay().out.forEach(x=>profitById[x.m.id]=Number(x.m.result)||0);
+  rem.forEach(m=>{const k=String(m.date||'').slice(0,7);if(!months[k])months[k]={clients:new Set(),rem:0,clp:0,profit:0};months[k].clients.add((String(m.ref||'').trim()||'Cliente sin identificar').toLowerCase());months[k].rem++;months[k].clp+=Number(m.clp)||0;months[k].profit+=profitById[m.id]||0;});
+  const mb=$('an_monthly_body'),keys=Object.keys(months).sort();
+  if(mb)mb.innerHTML=keys.length?keys.slice().reverse().map(k=>{const x=months[k];return `<tr><td>${esc(k)}</td><td>${x.clients.size}</td><td>${x.rem}</td><td>${money(x.clp)} CLP</td><td>${money(x.rem?x.clp/x.rem:0)} CLP</td><td>${money(x.profit)} CLP</td></tr>`;}).join(''):'<tr><td colspan="6" class="muted">Aún no hay datos.</td></tr>';
+}
+window.renderCommissions=renderCommissions;window.renderAnalytics=renderAnalytics;
+
 function render(){
  const {s}=replay();
  $('j_cash').textContent=money(s.cash)+' CLP';$('j_usdt').textContent=num4(s.usdt)+' USDT';$('j_usdt_avg').textContent='Costo: '+money(s.usdtAvg)+' CLP/USDT';$('j_ves').textContent=money(s.ves)+' VES';$('j_avg').textContent=rateFmt(s.avg)+' CLP/VES';$('j_profit').textContent=money(s.profit)+' CLP';
  $('j_received').textContent=money(s.received)+' CLP';$('j_invested').textContent=money(s.invested)+' CLP';$('j_sent').textContent=money(s.sent)+' VES';$('j_icount').textContent=s.icount;$('j_rcount').textContent=s.rcount;$('j_cost').textContent=money(s.cost)+' CLP';$('j_usdt_detail').textContent=num4(s.usdt)+' USDT';$('j_usdt_cost').textContent=money(s.usdtCost)+' CLP';
  const val=s.lastRate?s.ves/s.lastRate:0;$('j_value').textContent=money(val)+' CLP';$('j_potential').textContent=money(val-s.cost)+' CLP';
- const days=dailyStats();renderHistory();renderCalendar(days);previewInvestment();previewRemittance();renderCloseHistory();
+ const days=dailyStats();renderHistory();renderCalendar(days);previewInvestment();previewRemittance();renderCloseHistory();renderCommissions();renderAnalytics();
  const opening=data.moves.find(m=>m.type==='opening');$('startMsg').textContent=opening?'Saldo inicial establecido el '+opening.date+'.':'Aún no has establecido el saldo inicial.';
 }
 function renderHistory(){
  const rows=historySorted();if(!rows.length){$('history_body').innerHTML='<tr><td colspan="8" class="muted">No hay movimientos.</td></tr>';return}
- const typeMap={opening:'Saldo inicial',capital:'Aporte de capital',client:'Ingreso cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa'};
+ const typeMap={opening:'Saldo inicial',capital:'Aporte de capital',client:'Ingreso cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa',commission_payment:'Pago comisión'};
  $('history_body').innerHTML=rows.map(m=>{
    const type=typeMap[m.type]||m.type;
    let result='—';
@@ -1317,11 +1494,12 @@ window.showDay=function(key){
 window.editMove=function(id){
  const m=data.moves.find(x=>x.id===id);if(!m)return;
  if(m.type==='opening'){alert('Para modificar el saldo inicial, usa “Borrar todo el Journal” y vuelve a establecerlo.');return}
- const labels={capital:'Aporte de capital',client:'Ingreso de cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión (legacy)',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa'};
+ const labels={capital:'Aporte de capital',client:'Ingreso de cliente',other:'Otro ingreso',withdraw:'Retiro',investment:'Inversión (legacy)',usdt_purchase:'Compra USDT',usdt_sale:'Venta USDT → VES',remittance:'Remesa',commission_payment:'Pago comisión'};
  let body=`<input type="hidden" id="edit_id" value="${esc(id)}"><label>Fecha/hora<input id="e_date" type="datetime-local" value="${esc(m.date)}"></label><label style="margin-top:12px">Tipo<select id="e_type">${Object.entries(labels).map(([v,t])=>`<option value="${v}" ${m.type===v?'selected':''}>${t}</option>`).join('')}</select></label><div class="grid" style="margin-top:12px"><label>CLP<input id="e_clp" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>VES<input id="e_ves" type="number" value="${Number(m.ves)||0}" step="0.01"></label><label>USDT<input id="e_usdt" type="number" value="${Number(m.usdt)||0}" step="0.0001"></label></div><label style="margin-top:12px">Moneda<select id="e_currency"><option value="CLP" ${((m.currency||'CLP')==='CLP')?'selected':''}>CLP</option><option value="VES" ${((m.currency||'CLP')==='VES')?'selected':''}>VES</option><option value="USDT" ${((m.currency||'CLP')==='USDT')?'selected':''}>USDT</option></select></label><label style="margin-top:12px">Tasa pública<input id="e_rate" type="number" value="${Number(m.rate)||0}" step="0.000001"></label><label style="margin-top:12px">Referencia<input id="e_ref" type="text" value="${esc(m.ref||'')}"></label>`;
  if(m.type==='investment')body+=`<div class="grid" style="margin-top:12px"><label>Compra Binance<input id="e_buy" type="number" value="${m.buy}" step="0.01"></label><label>Venta Binance<input id="e_sell" type="number" value="${m.sell}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee" type="number" value="${m.fee}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank" type="number" value="${m.bank}" step="0.01"></label></div>`;
   if(m.type==='usdt_purchase')body+=`<div class="grid" style="margin-top:12px"><label>CLP invertidos<input id="e_clp_purchase" type="number" value="${Number(m.clp)||0}" step="0.01"></label><label>Compra Binance CLP/USDT<input id="e_buy_purchase" type="number" value="${Number(m.buy)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_purchase" type="number" value="${Number(m.fee)||0}" step="0.0001"></label></div>`;
   if(m.type==='usdt_sale')body+=`<div class="grid" style="margin-top:12px"><label>USDT vendidos<input id="e_usdt_sale" type="number" value="${Number(m.usdt)||0}" step="0.01"></label><label>Venta Binance VES/USDT<input id="e_sell_sale" type="number" value="${Number(m.sell)||0}" step="0.01"></label><label>Comisión Binance USDT<input id="e_fee_sale" type="number" value="${Number(m.fee)||0}" step="0.0001"></label><label>Banco Venezuela %<input id="e_bank_sale" type="number" value="${Number(m.bank)||0}" step="0.01"></label></div>`;
+   if(m.type==='commission_payment')body+=`<div class="grid" style="margin-top:12px"><label>Colaborador<input id="e_staff_payment_name" type="text" value="${esc(m.staffName||'')}"></label><label>Monto pagado CLP<input id="e_staff_payment_amount" type="number" value="${Number(m.clp)||0}" step="0.01"></label></div>`;
    if(m.type==='remittance')body+=`<label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="e_bank_charge" type="checkbox" ${Number(m.bankPct||0)>0?'checked':''} class="vz-auto-time" style="width:auto;margin:0">Genera comisión bancaria (0,30%)</label><div class="vz-commission-note">Desmárcalo si fue una transferencia dentro del mismo banco.</div><label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="e_staff_charge" type="checkbox" ${Number(m.staffPct||0)>0?'checked':''} class="vz-auto-time" style="width:auto;margin:0">Paga comisión a colaborador</label><div class="grid" style="margin-top:10px"><label>Colaborador<input id="e_staff_name" type="text" value="${esc(m.staffName||'Yoselin Mendez')}"></label><label>Comisión colaborador (%)<input id="e_staff_pct" type="number" value="${Number(m.staffPct)||2}" step="0.01" min="0"></label></div>`;
  $('modalBody').innerHTML=body+`<div class="actions"><button class="btn primary" id="saveEdit">Guardar cambios</button><button class="btn" id="cancelEdit">Cancelar</button></div><p class="note">Después de guardar, todos los saldos y ganancias se recalculan en orden cronológico.</p>`;
  $('modalBack').classList.add('show');
@@ -1332,6 +1510,7 @@ window.editMove=function(id){
    if(m.type==='investment'){m.buy=Number($('e_buy').value)||0;m.sell=Number($('e_sell').value)||0;m.fee=Number($('e_fee').value)||0;m.bank=Number($('e_bank').value)||0}
    if(m.type==='usdt_purchase'){m.clp=Number($('e_clp_purchase').value)||0;m.buy=Number($('e_buy_purchase').value)||0;m.fee=Number($('e_fee_purchase').value)||0;m.usdt=m.buy>0?Math.max(0,m.clp/m.buy-m.fee):0}
    if(m.type==='usdt_sale'){m.usdt=Number($('e_usdt_sale').value)||0;m.sell=Number($('e_sell_sale').value)||0;m.fee=Number($('e_fee_sale').value)||0;m.bank=Number($('e_bank_sale').value)||0}
+   if(m.type==='commission_payment'){m.staffName=String($('e_staff_payment_name')?.value||'').trim();m.clp=Number($('e_staff_payment_amount')?.value)||0;m.ves=0;m.usdt=0;m.currency='CLP';m.rate=0;}
    if(m.type==='remittance'){
      m.bankPct=$('e_bank_charge')&&$('e_bank_charge').checked?0.30:0;
      const staffOn=$('e_staff_charge')&&$('e_staff_charge').checked;
@@ -1381,6 +1560,45 @@ function previewInvestment(){
  const usdt=Math.max(0,clp/buy-fee);$('i_result').textContent=num4(usdt);$('i_cost').textContent=money(usdt?clp/usdt:0);
  $('i_check').textContent=clp<=s.cash?'✓ Caja suficiente: '+money(s.cash)+' CLP disponibles.':'⚠️ Faltan '+money(clp-s.cash)+' CLP.';
 }
+
+function remittanceDraft(){
+  try{return JSON.parse(localStorage.getItem(REMITTANCE_DRAFT_KEY)||'null')||null;}catch(e){return null;}
+}
+function saveRemittanceDraft(){
+  try{
+    const draft={
+      clp:$('r_clp')?.value||'', ves:$('r_ves')?.value||'', ref:$('r_ref')?.value||'',
+      bankCharge:!!$('r_bank_charge')?.checked, staffCharge:!!$('r_staff_charge')?.checked,
+      staffName:$('r_staff_name')?.value||'', staffPct:$('r_staff_pct')?.value||'',
+      date:$('r_date')?.value||'', dateAuto:!!$('r_date_auto')?.checked, savedAt:new Date().toISOString()
+    };
+    localStorage.setItem(REMITTANCE_DRAFT_KEY,JSON.stringify(draft));
+  }catch(e){}
+}
+function clearRemittanceDraft(){try{localStorage.removeItem(REMITTANCE_DRAFT_KEY);}catch(e){}}
+function updateRemittanceRate(){
+  const clp=Number($('r_clp')?.value)||0,ves=Number($('r_ves')?.value)||0;
+  const rate=clp>0&&ves>0?ves/clp:0;
+  if($('r_rate')) $('r_rate').value=rate?rate.toFixed(6):'';
+  return rate;
+}
+function restoreRemittanceDraft(){
+  const d=remittanceDraft();
+  if(!d)return false;
+  if($('r_clp'))$('r_clp').value=d.clp??'';
+  if($('r_ves'))$('r_ves').value=d.ves??'';
+  if($('r_ref'))$('r_ref').value=d.ref??'';
+  if($('r_bank_charge'))$('r_bank_charge').checked=d.bankCharge!==false;
+  if($('r_staff_charge'))$('r_staff_charge').checked=!!d.staffCharge;
+  if($('r_staff_name'))$('r_staff_name').value=d.staffName??'';
+  if($('r_staff_pct'))$('r_staff_pct').value=d.staffPct??'';
+  if($('r_staff_fields'))$('r_staff_fields').style.display=d.staffCharge?'grid':'none';
+  if($('r_date_auto'))$('r_date_auto').checked=d.dateAuto!==false;
+  if($('r_date'))$('r_date').value=(d.dateAuto!==false?todayLocal():(d.date||todayLocal()));
+  updateRemittanceRate();previewRemittance();
+  return true;
+}
+
 function previewRemittance(){
  const s=replay().s,clp=Number($('r_clp').value)||0,ves=Number($('r_ves').value)||0;
  const bankPct=$('r_bank_charge')&&$('r_bank_charge').checked?0.30:0;
@@ -1396,14 +1614,16 @@ function previewRemittance(){
 }
 ['i_operation','i_clp','i_buy','i_fee','i_usdt_sale','i_sell','i_sale_fee','i_bank'].forEach(id=>{if($(id))$(id).addEventListener('input',previewInvestment)});
 $('i_operation').addEventListener('change',syncInvestmentMode);
-['r_clp','r_rate','r_ves','r_bank_charge'].forEach(id=>$(id).addEventListener('input',previewRemittance));
-$('r_bank_charge').addEventListener('change',previewRemittance);
+['r_clp','r_ves','r_ref','r_staff_pct','r_staff_name'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{updateRemittanceRate();saveRemittanceDraft();previewRemittance();});});
+$('r_bank_charge').addEventListener('change',()=>{saveRemittanceDraft();previewRemittance();});
 $('r_staff_charge').addEventListener('change',()=>{
  const on=$('r_staff_charge').checked;
  $('r_staff_fields').style.display=on?'grid':'none';
+ saveRemittanceDraft();
  previewRemittance();
 });
-['r_staff_pct','r_staff_name'].forEach(id=>$(id).addEventListener('input',previewRemittance));
+$('r_date').addEventListener('input',saveRemittanceDraft);
+$('r_date_auto').addEventListener('change',()=>{if($('r_date_auto').checked)$('r_date').value=todayLocal();saveRemittanceDraft();});
 
 $('startBtn').onclick=()=>{
  if(data.moves.some(m=>m.type==='opening')){alert('Ya existe un saldo inicial. Si quieres cambiarlo, elimina el Journal y vuelve a empezar.');return}
@@ -1443,14 +1663,14 @@ $('i_add').onclick=()=>{
 
 $('r_add').onclick=()=>{
  if(!data.started){$('r_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
- const clp=Number($('r_clp').value)||0,ves=Number($('r_ves').value)||0,rr=Number($('r_rate').value)||0,s=replay().s;
+ const clp=Number($('r_clp').value)||0,ves=Number($('r_ves').value)||0,rr=updateRemittanceRate(),s=replay().s;
  if(!clp||!ves||!rr){$('r_msg').textContent='Completa CLP, VES y tasa.';return}
  if(ves>s.ves){$('r_msg').textContent='⚠️ Inventario VES insuficiente. Disponibles: '+money(s.ves)+' VES.';return}
  const staffOn=$('r_staff_charge')&&$('r_staff_charge').checked;
  const staffPct=staffOn?(Number($('r_staff_pct').value)||0):0;
  const staffName=staffOn?String($('r_staff_name').value||'').trim():'';
  const staffFee=staffOn?clp*staffPct/100:0;
- const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('r_date_auto')&&$('r_date_auto').checked?todayLocal():$('r_date').value),type:'remittance',clp,ves,rate:rr,ref:$('r_ref').value,bankPct:($('r_bank_charge').checked?0.30:0),staffPct,staffName,staffFee};data.moves.push(newMove);save();$('r_msg').textContent='✅ Remesa registrada localmente.';refreshAutoDate();render();restoreLastRemittanceForm();previewRemittance();syncAndConfirm(newMove,$('r_msg'));
+ const newMove={id:'m'+(++data.seq),seq:data.seq,date:($('r_date_auto')&&$('r_date_auto').checked?todayLocal():$('r_date').value),type:'remittance',clp,ves,rate:rr,ref:$('r_ref').value,bankPct:($('r_bank_charge').checked?0.30:0),staffPct,staffName,staffFee};data.moves.push(newMove);save();clearRemittanceDraft();$('r_msg').textContent='✅ Remesa registrada localmente.';refreshAutoDate();render();restoreLastRemittanceForm();previewRemittance();syncAndConfirm(newMove,$('r_msg'));
 };
 $('cf_add').onclick=()=>{
  if(!data.started){$('cf_msg').textContent='⚠️ Primero establece el saldo inicial en Journal.';return}
@@ -1636,7 +1856,7 @@ previewRemittance();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.5.9',
+        version:'V3.6.0',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1646,7 +1866,7 @@ previewRemittance();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.5.9_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.6.0_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1867,6 +2087,23 @@ previewRemittance();
   if(type)type.addEventListener('change',syncCashFields);
   if(cur)cur.addEventListener('change',syncCashFields);
   syncCashFields();
+})();
+
+(function(){
+  if($('cm_date'))$('cm_date').value=todayLocal();
+  $('cm_date_auto')?.addEventListener('change',()=>{if($('cm_date_auto').checked)$('cm_date').value=todayLocal();});
+  $('cm_name')?.addEventListener('input',renderCommissions);
+  $('cm_add')?.addEventListener('click',registerCommissionPayment);
+  renderCommissions();
+  renderAnalytics();
+})();
+
+// Keep an unsaved remittance draft safe while the cloud watcher refreshes the Journal.
+(function(){
+  restoreRemittanceDraft();
+  const restore=()=>{ if(remittanceDraft()) restoreRemittanceDraft(); };
+  window.addEventListener('focus',restore);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)restore();});
 })();
 </script>
 </body>
