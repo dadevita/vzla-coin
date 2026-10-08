@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.6.1</title>
+<title>Vzla Coin V3.6.2</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -323,7 +323,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.6.1</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.6.2</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -754,6 +754,7 @@ const DATA_SCOPE=(location.protocol+'//'+location.host+location.pathname).replac
 function scopeHash(v){let h=2166136261;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
 const DATA_KEY='remesas_v32__'+scopeHash(DATA_SCOPE);
 const REMITTANCE_DRAFT_KEY='vzla_coin_remittance_draft_v360__'+scopeHash(DATA_SCOPE);
+const INVESTMENT_DRAFT_KEY='vzla_coin_investment_draft_v362__'+scopeHash(DATA_SCOPE);
 let rawLocal=localStorage.getItem(DATA_KEY);
 if(rawLocal===null){
   const legacy=localStorage.getItem(LEGACY_DATA_KEY);
@@ -925,7 +926,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     }
 
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.1',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.2',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
       localStorage.setItem('vzla_coin_precloud_v361',JSON.stringify(snapshot));
     }catch(e){console.warn('Local safety snapshot error',e);}
 
@@ -934,7 +935,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     // pendientes del Journal local anterior a esta carga autoritativa.
     rebuilt.meta.dirty={};rebuilt.meta.pendingDeletes={};rebuilt.meta.conflicts=[];
     data={moves:rebuilt.moves,seq:rebuilt.seq,started:rebuilt.started,openingId:rebuilt.openingId,closures:rebuilt.closures};
-    saveCloudMeta(rebuilt.meta);save();render();restoreLastRemittanceForm();previewRemittance();
+    saveCloudMeta(rebuilt.meta);save();render();restoreInvestmentDraft();restoreLastRemittanceForm();previewRemittance();
     cloudInitialSyncDone=true;cloudLastSyncAt=Date.now();
     cloudSetStatus(`☁️ Journal cargado desde la nube · ${rebuilt.moves.length} movimientos · ${rebuilt.closures.length} cierres.`,true);
     return {ok:true,mode:'pull',rows:rows.length};
@@ -1003,7 +1004,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     }
 
     data.seq=maxSeq;data.started=data.moves.some(m=>m.type==='opening');data.openingId=(data.moves.find(m=>m.type==='opening')||{}).id||null;
-    saveCloudMeta(meta);save();render();
+    saveCloudMeta(meta);save();render();restoreInvestmentDraft();restoreLastRemittanceForm();
     return {ok:true,added,updated,conflicts,total:rows.length};
   }
 
@@ -1089,6 +1090,11 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
       if(cloudSyncBusy)return;
       try{
         await pushPendingLocal(false);
+        // Do not pull/redraw cloud state while the user has an unsaved form draft.
+        if(investmentDraft() || remittanceDraft()){
+          cloudLastSyncAt=Date.now();
+          return;
+        }
         const r=await pullMovesFromCloud();
         cloudLastSyncAt=Date.now();
         if(r.added||r.updated||r.conflicts){
@@ -1115,9 +1121,9 @@ function investmentVES(m){
  return grossV*(1-Number(m.bank||0)/100);
 }
 function replay(){
- // V3.6.1: replay is intentionally PURE.
- // It must NEVER mutate data.moves or any persisted operation. All calculated
- // fields are kept in the replay snapshot returned for rendering/validation.
+ // V3.6.2: replay is STRICTLY PURE.
+ // It never changes form controls, data.moves, localStorage, or persisted operations.
+ // UI previews are called by render()/input handlers, never from replay itself.
  let s={cash:0,ves:0,cost:0,avg:0,usdt:0,usdtCost:0,usdtAvg:0,profit:0,received:0,invested:0,sent:0,icount:0,rcount:0,lastRate:0};
  const out=[];
  for(const original of sorted()){
@@ -1537,10 +1543,6 @@ function closeModal(){$('modalBack').classList.remove('show')}$('closeModal').on
 $('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
 
 function syncInvestmentMode(){
- const sale=$('i_operation').value==='sale';
- $('i_purchase_fields').style.display=sale?'none':'grid';$('i_sale_fields').style.display=sale?'grid':'none';
- $('i_purchase_preview').style.display=sale?'none':'block';$('i_sale_preview').style.display=sale?'block':'none';
- $('i_add').textContent=sale?'Registrar venta USDT':'Registrar compra USDT';previewInvestment();
 }
 function previewInvestment(){
  const sale=$('i_operation')&&$('i_operation').value==='sale',s=replay().s;
@@ -1554,6 +1556,29 @@ function previewInvestment(){
  if(!clp||!buy){$('i_result').textContent='0';$('i_cost').textContent='0,00';$('i_check').textContent='';return}
  const usdt=Math.max(0,clp/buy-fee);$('i_result').textContent=num4(usdt);$('i_cost').textContent=money(usdt?clp/usdt:0);
  $('i_check').textContent=clp<=s.cash?'✓ Caja suficiente: '+money(s.cash)+' CLP disponibles.':'⚠️ Faltan '+money(clp-s.cash)+' CLP.';
+}
+
+function investmentDraft(){
+  try{return JSON.parse(localStorage.getItem(INVESTMENT_DRAFT_KEY)||'null')||null;}catch(e){return null;}
+}
+function saveInvestmentDraft(){
+  try{
+    const d={operation:$('i_operation')?.value||'buy',clp:$('i_clp')?.value||'',buy:$('i_buy')?.value||'',fee:$('i_fee')?.value||'',usdtSale:$('i_usdt_sale')?.value||'',sell:$('i_sell')?.value||'',saleFee:$('i_sale_fee')?.value||'',bank:$('i_bank')?.value||'',savedAt:new Date().toISOString()};
+    localStorage.setItem(INVESTMENT_DRAFT_KEY,JSON.stringify(d));
+  }catch(e){}
+}
+function clearInvestmentDraft(){try{localStorage.removeItem(INVESTMENT_DRAFT_KEY);}catch(e){}}
+function restoreInvestmentDraft(){
+  const d=investmentDraft();if(!d)return false;
+  if($('i_operation'))$('i_operation').value=d.operation||'buy';
+  if($('i_clp'))$('i_clp').value=d.clp??'';
+  if($('i_buy'))$('i_buy').value=d.buy??'';
+  if($('i_fee'))$('i_fee').value=d.fee??'';
+  if($('i_usdt_sale'))$('i_usdt_sale').value=d.usdtSale??'';
+  if($('i_sell'))$('i_sell').value=d.sell??'';
+  if($('i_sale_fee'))$('i_sale_fee').value=d.saleFee??'';
+  if($('i_bank'))$('i_bank').value=d.bank??'';
+  syncInvestmentMode();previewInvestment();return true;
 }
 
 function remittanceDraft(){
@@ -1607,8 +1632,10 @@ function previewRemittance(){
  if($('r_staff_metric'))$('r_staff_metric').style.display=staffOn?'block':'none';
  if($('r_staff_fee'))$('r_staff_fee').textContent=money(staffFee)+' CLP';
 }
-['i_operation','i_clp','i_buy','i_fee','i_usdt_sale','i_sell','i_sale_fee','i_bank'].forEach(id=>{if($(id))$(id).addEventListener('input',previewInvestment)});
-$('i_operation').addEventListener('change',syncInvestmentMode);
+['i_operation','i_clp','i_buy','i_fee','i_usdt_sale','i_sell','i_sale_fee','i_bank'].forEach(id=>{
+ if($(id))$(id).addEventListener('input',()=>{saveInvestmentDraft();previewInvestment();});
+});
+$('i_operation').addEventListener('change',()=>{saveInvestmentDraft();syncInvestmentMode();});
 ['r_clp','r_ves','r_ref','r_staff_pct','r_staff_name'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{updateRemittanceRate();saveRemittanceDraft();previewRemittance();});});
 $('r_bank_charge').addEventListener('change',()=>{saveRemittanceDraft();previewRemittance();});
 $('r_staff_charge').addEventListener('change',()=>{
@@ -1646,13 +1673,13 @@ $('i_add').onclick=()=>{
    if(clp>s.cash){$('i_msg').textContent='⚠️ Caja CLP insuficiente. Disponibles: '+money(s.cash)+' CLP.';return}
    const usdt=Math.max(0,clp/buy-fee);if(usdt<=0){$('i_msg').textContent='⚠️ La compra no genera USDT disponibles.';return}
    const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_purchase',clp,usdt,buy,fee,ref:'Binance'};
-   data.moves.push(newMove);save();$('i_msg').textContent='✅ Compra de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
+   data.moves.push(newMove);save();clearInvestmentDraft();$('i_msg').textContent='✅ Compra de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
  }else{
    const usdt=Number($('i_usdt_sale').value)||0,sell=Number($('i_sell').value)||0,fee=Number($('i_sale_fee').value)||0,bank=Number($('i_bank').value)||0,totalUsdt=usdt+fee;
    if(!usdt||!sell){$('i_msg').textContent='Completa USDT, venta Binance y comisión.';return}
    if(totalUsdt>s.usdt+1e-9){$('i_msg').textContent='⚠️ USDT insuficiente. Disponibles: '+num4(s.usdt)+' USDT.';return}
    const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_sale',usdt,sell,fee,bank,ref:'Binance'};
-   data.moves.push(newMove);save();$('i_msg').textContent='✅ Venta de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
+   data.moves.push(newMove);save();clearInvestmentDraft();$('i_msg').textContent='✅ Venta de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
  }
 };
 
@@ -1702,6 +1729,7 @@ $('prevMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalenda
 $('nextMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar(dailyStats())};
 
 render();
+restoreInvestmentDraft();
 restoreLastRemittanceForm();
 previewRemittance();
 
@@ -1851,7 +1879,7 @@ previewRemittance();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.6.1',
+        version:'V3.6.2',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1861,7 +1889,7 @@ previewRemittance();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.6.1_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.6.2_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
