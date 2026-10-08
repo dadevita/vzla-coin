@@ -1608,6 +1608,21 @@ function closeModal(){$('modalBack').classList.remove('show')}$('closeModal').on
 $('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
 
 function syncInvestmentMode(){
+  const sale = $('i_operation') && $('i_operation').value === 'sale';
+  const purchaseFields = $('i_purchase_fields');
+  const saleFields = $('i_sale_fields');
+  const purchasePreview = $('i_purchase_preview');
+  const salePreview = $('i_sale_preview');
+  const addBtn = $('i_add');
+
+  if(purchaseFields) purchaseFields.style.display = sale ? 'none' : 'grid';
+  if(saleFields) saleFields.style.display = sale ? 'grid' : 'none';
+  if(purchasePreview) purchasePreview.style.display = sale ? 'none' : 'block';
+  if(salePreview) salePreview.style.display = sale ? 'block' : 'none';
+  if(addBtn) addBtn.textContent = sale ? 'Registrar venta USDT → VES' : 'Registrar compra USDT';
+
+  // Keep the preview and validation in sync immediately when the operation changes.
+  previewInvestment();
 }
 function previewInvestment(){
  const sale=$('i_operation')&&$('i_operation').value==='sale',s=replay().s;
@@ -1635,7 +1650,7 @@ function saveInvestmentDraft(){
 function clearInvestmentDraft(){try{localStorage.removeItem(INVESTMENT_DRAFT_KEY);}catch(e){}}
 function restoreInvestmentDraft(){
   const d=investmentDraft();if(!d)return false;
-  if($('i_operation'))$('i_operation').value=d.operation||'buy';
+  if($('i_operation'))$('i_operation').value=(d.operation==='sale'||d.operation==='purchase')?d.operation:'purchase';
   if($('i_clp'))$('i_clp').value=d.clp??'';
   if($('i_buy'))$('i_buy').value=d.buy??'';
   if($('i_fee'))$('i_fee').value=d.fee??'';
