@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vzla Coin V3.6.3</title>
+<title>Vzla Coin V3.6.4</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--text:#15171a;--muted:#68707a;--border:#dfe3e8;--accent:#2563eb;--good:#138a52;--bad:#c63b3b;--warn:#9a6700}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
@@ -754,7 +754,7 @@ const DATA_SCOPE=(location.protocol+'//'+location.host+location.pathname).replac
 function scopeHash(v){let h=2166136261;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
 const DATA_KEY='remesas_v32__'+scopeHash(DATA_SCOPE);
 const REMITTANCE_DRAFT_KEY='vzla_coin_remittance_draft_v360__'+scopeHash(DATA_SCOPE);
-const INVESTMENT_DRAFT_KEY='vzla_coin_investment_draft_v362__'+scopeHash(DATA_SCOPE);
+const INVESTMENT_DRAFT_KEY='vzla_coin_investment_draft_v364__'+scopeHash(DATA_SCOPE);
 let rawLocal=localStorage.getItem(DATA_KEY);
 if(rawLocal===null){
   const legacy=localStorage.getItem(LEGACY_DATA_KEY);
@@ -863,10 +863,19 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
   async function syncMoveToCloud(m,options={}){
     const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated'};
     const payload=cloudPayloadForMove(m),id=String(m.id),updatedAt=options.updatedAt||nowIso();
-    const row={user_id:user.id,legacy_id:id,seq:Number(m.seq)||0,type:String(m.type||''),occurred_at:new Date(m.date).toISOString(),payload,updated_at:updatedAt};
-    const {error}=await supabaseClient.from('journal_moves').upsert(row,{onConflict:'user_id,legacy_id'});
-    if(error)throw error;
-    rememberVersion(id,updatedAt,payload);return {ok:true,updatedAt};
+    const parsedDate=new Date(m.date);
+    if(!id||!m.date||Number.isNaN(parsedDate.getTime())){
+      throw new Error('Movimiento con fecha/ID inválidos.');
+    }
+    const row={user_id:user.id,legacy_id:id,seq:Number(m.seq)||0,type:String(m.type||''),occurred_at:parsedDate.toISOString(),payload,updated_at:updatedAt};
+    let lastError=null;
+    for(let attempt=1;attempt<=3;attempt++){
+      const {error}=await supabaseClient.from('journal_moves').upsert(row,{onConflict:'user_id,legacy_id'});
+      if(!error){rememberVersion(id,updatedAt,payload);return {ok:true,updatedAt,attempt};}
+      lastError=error;
+      if(attempt<3) await new Promise(r=>setTimeout(r,500*attempt));
+    }
+    throw lastError||new Error('No se pudo sincronizar el movimiento.');
   }
 
   async function deleteMoveFromCloud(m){
@@ -915,27 +924,58 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
   // created before anything is replaced.
   async function initialCloudSync(){
     if(!cloudLoggedIn)return {ok:false,reason:'not_authenticated'};
-    const result=await fetchCloudRows();
+
+    // V3.6.4: antes de tratar la nube como fuente de verdad, intentamos subir
+    // cualquier movimiento local marcado como pendiente. Esto evita que una
+    // venta recién registrada desaparezca al recargar la página si el primer
+    // intento de Supabase falló o tardó unos segundos.
+    const pendingBefore=await pushPendingLocal(false);
+    let result=await fetchCloudRows();
     if(!result.ok)return result;
-    const rows=result.rows||[];
+    let rows=result.rows||[];
+
     if(rows.length===0){
       const pushed=await pushPendingLocal(true);
       cloudInitialSyncDone=true;cloudLastSyncAt=Date.now();
       cloudSetStatus(`☁️ Nube vacía: Journal local conservado · ${pushed} registros subidos.`,true);
-      return {ok:true,mode:'push_local',rows:0,pushed};
+      return {ok:true,mode:'push_local',rows:0,pushed:pushed+pendingBefore};
     }
 
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.3',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
-      localStorage.setItem('vzla_coin_precloud_v361',JSON.stringify(snapshot));
-    }catch(e){console.warn('Local safety snapshot error',e);}
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.4',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      localStorage.setItem('vzla_coin_precloud_v364',JSON.stringify(snapshot));
+    }catch(e){console.warn('Local safety snapshot error:',e);}
+
+    // Reintenta los pendientes y vuelve a leer la nube antes de reemplazar
+    // el Journal local. Si una venta estaba pendiente, ya debe formar parte
+    // del conjunto autoritativo.
+    await pushPendingLocal(false);
+    result=await fetchCloudRows();
+    if(!result.ok)return result;
+    rows=result.rows||[];
 
     const rebuilt=rebuildStateFromCloud(rows);
-    // La nube es la fuente de verdad al entrar: nunca arrastramos órdenes de subida
-    // pendientes del Journal local anterior a esta carga autoritativa.
-    rebuilt.meta.dirty={};rebuilt.meta.pendingDeletes={};rebuilt.meta.conflicts=[];
+    const meta=rebuilt.meta;
+
+    // Si algún movimiento local sigue pendiente por un problema temporal de
+    // red, NO lo eliminamos de pantalla al recargar. Se conserva y seguirá
+    // en cola para el próximo intento de sincronización.
+    const localDirtyIds=new Set(Object.keys(cloudMeta().dirty||{}));
+    const cloudIds=new Set(rebuilt.moves.map(m=>String(m.id)));
+    for(const localMove of (data.moves||[])){
+      const id=String(localMove.id);
+      if(localDirtyIds.has(id)&&!cloudIds.has(id)){
+        rebuilt.moves.push(JSON.parse(JSON.stringify(localMove)));
+        meta.dirty[id]=cloudMeta().dirty[id];
+      }
+    }
+    rebuilt.moves.sort((a,b)=>a.date.localeCompare(b.date)||Number(a.seq||0)-Number(b.seq||0));
+    rebuilt.seq=Math.max(Number(rebuilt.seq)||0,...rebuilt.moves.map(m=>Number(m.seq)||0));
+    rebuilt.started=rebuilt.moves.some(m=>m.type==='opening');
+    rebuilt.openingId=(rebuilt.moves.find(m=>m.type==='opening')||{}).id||null;
+
     data={moves:rebuilt.moves,seq:rebuilt.seq,started:rebuilt.started,openingId:rebuilt.openingId,closures:rebuilt.closures};
-    saveCloudMeta(rebuilt.meta);save();render();restoreInvestmentDraft();restoreLastRemittanceForm();previewRemittance();
+    saveCloudMeta(meta);save();render();restoreInvestmentDraft();restoreLastRemittanceForm();previewRemittance();
     cloudInitialSyncDone=true;cloudLastSyncAt=Date.now();
     cloudSetStatus(`☁️ Journal cargado desde la nube · ${rebuilt.moves.length} movimientos · ${rebuilt.closures.length} cierres.`,true);
     return {ok:true,mode:'pull',rows:rows.length};
@@ -1082,10 +1122,15 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     markDirty(String(m.id));
     try{
       const result=await syncMoveToCloud(m);
-      if(result.reason==='not_authenticated'){syncMessage(msgEl,'⚠️ Guardado localmente. Se sincronizará al iniciar sesión.',false);return;}
+      if(result.reason==='not_authenticated'){syncMessage(msgEl,'⚠️ Guardado localmente. Se sincronizará al iniciar sesión.',false);return result;}
       syncMessage(msgEl,'☁️ Sincronizado en la nube.',true);cloudSetStatus('☁️ Cambio sincronizado.',true);
+      return result;
     }catch(e){
-      console.error('Cloud sync error:',e);syncMessage(msgEl,'⚠️ Guardado localmente. Se sincronizará al recuperar conexión.',false);
+      console.error('Cloud sync error:',e);
+      // La marca dirty permanece deliberadamente. Al recargar o volver a
+      // sincronizar, V3.6.4 intentará subir exactamente este movimiento otra vez.
+      syncMessage(msgEl,'⚠️ Guardado localmente. Reintentando sincronización…',false);
+      return {ok:false,error:e};
     }
   }
   function syncMessage(el,text,good=false){if(!el)return;el.textContent=text;el.style.color=good?'#48e0a0':'var(--vz-muted,#9292a5)';}
@@ -1587,7 +1632,7 @@ function investmentDraft(){
 }
 function saveInvestmentDraft(){
   try{
-    const d={operation:$('i_operation')?.value||'buy',clp:$('i_clp')?.value||'',buy:$('i_buy')?.value||'',fee:$('i_fee')?.value||'',usdtSale:$('i_usdt_sale')?.value||'',sell:$('i_sell')?.value||'',saleFee:$('i_sale_fee')?.value||'',bank:$('i_bank')?.value||'',savedAt:new Date().toISOString()};
+    const d={operation:$('i_operation')?.value||'purchase',date:$('i_date')?.value||'',dateAuto:!!$('i_date_auto')?.checked,clp:$('i_clp')?.value||'',buy:$('i_buy')?.value||'',fee:$('i_fee')?.value||'',usdtSale:$('i_usdt_sale')?.value||'',sell:$('i_sell')?.value||'',saleFee:$('i_sale_fee')?.value||'',bank:$('i_bank')?.value||'',savedAt:new Date().toISOString()};
     localStorage.setItem(INVESTMENT_DRAFT_KEY,JSON.stringify(d));
   }catch(e){}
 }
@@ -1596,6 +1641,8 @@ function restoreInvestmentDraft(){
   const d=investmentDraft();if(!d)return false;
   const operation=d.operation==='sale'?'sale':'purchase';
   if($('i_operation'))$('i_operation').value=operation;
+  if($('i_date_auto'))$('i_date_auto').checked=d.dateAuto!==false;
+  if($('i_date'))$('i_date').value=(d.dateAuto!==false?todayLocal():(d.date||todayLocal()));
   if($('i_clp'))$('i_clp').value=d.clp??'';
   if($('i_buy'))$('i_buy').value=d.buy??'';
   if($('i_fee'))$('i_fee').value=d.fee??'';
@@ -1661,6 +1708,8 @@ function previewRemittance(){
  if($(id))$(id).addEventListener('input',()=>{saveInvestmentDraft();previewInvestment();});
 });
 $('i_operation').addEventListener('change',()=>{saveInvestmentDraft();syncInvestmentMode();});
+if($('i_date'))$('i_date').addEventListener('input',saveInvestmentDraft);
+if($('i_date_auto'))$('i_date_auto').addEventListener('change',()=>{if($('i_date_auto').checked)$('i_date').value=todayLocal();saveInvestmentDraft();});
 ['r_clp','r_ves','r_ref','r_staff_pct','r_staff_name'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{updateRemittanceRate();saveRemittanceDraft();previewRemittance();});});
 $('r_bank_charge').addEventListener('change',()=>{saveRemittanceDraft();previewRemittance();});
 $('r_staff_charge').addEventListener('change',()=>{
@@ -1697,13 +1746,13 @@ $('i_add').onclick=()=>{
    if(!clp||!buy){$('i_msg').textContent='Completa CLP, compra Binance y comisión.';return}
    if(clp>s.cash){$('i_msg').textContent='⚠️ Caja CLP insuficiente. Disponibles: '+money(s.cash)+' CLP.';return}
    const usdt=Math.max(0,clp/buy-fee);if(usdt<=0){$('i_msg').textContent='⚠️ La compra no genera USDT disponibles.';return}
-   const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_purchase',clp,usdt,buy,fee,ref:'Binance'};
+   const id='m'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),seq=++data.seq,newMove={id,seq,date,type:'usdt_purchase',clp,usdt,buy,fee,ref:'Binance'};
    data.moves.push(newMove);save();clearInvestmentDraft();$('i_msg').textContent='✅ Compra de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
  }else{
    const usdt=Number($('i_usdt_sale').value)||0,sell=Number($('i_sell').value)||0,fee=Number($('i_sale_fee').value)||0,bank=Number($('i_bank').value)||0,totalUsdt=usdt+fee;
    if(!usdt||!sell){$('i_msg').textContent='Completa USDT, venta Binance y comisión.';return}
    if(totalUsdt>s.usdt+1e-9){$('i_msg').textContent='⚠️ USDT insuficiente. Disponibles: '+num4(s.usdt)+' USDT.';return}
-   const id='m'+(++data.seq),newMove={id,seq:data.seq,date,type:'usdt_sale',usdt,sell,fee,bank,ref:'Binance'};
+   const id='m'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),seq=++data.seq,newMove={id,seq,date,type:'usdt_sale',usdt,sell,fee,bank,ref:'Binance'};
    data.moves.push(newMove);save();clearInvestmentDraft();$('i_msg').textContent='✅ Venta de USDT registrada localmente.';refreshAutoDate();render();syncAndConfirm(newMove,$('i_msg'));
  }
 };
@@ -1904,7 +1953,7 @@ previewRemittance();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.6.3',
+        version:'V3.6.4',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1914,7 +1963,7 @@ previewRemittance();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.6.3_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.6.4_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
