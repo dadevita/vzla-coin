@@ -323,7 +323,7 @@ body.vz-light .vz-usdt-box{background:#faf9ff;border-color:#d8cffc}
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="title"><h1>Vzla Coin · V3.6.5</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
+<div class="top"><div class="title"><h1>Vzla Coin · V3.6.6</h1></div><div style="display:flex;align-items:center;gap:10px"><div class="muted">Guardado automático en este navegador</div><button type="button" class="vz-theme-toggle" id="vzThemeToggle" aria-label="Cambiar tema"><span class="vz-theme-icon" id="vzThemeIcon">☾</span><span id="vzThemeText">Oscuro</span></button><button type="button" class="vz-theme-toggle" id="vzExport" aria-label="Descargar respaldo">💾 Respaldo</button><button type="button" class="vz-theme-toggle" id="vzImport" aria-label="Restaurar respaldo">↥ Restaurar</button><input id="vzImportFile" type="file" accept=".json,application/json" style="display:none"></div></div>
 
 <div id="cloudPanel" style="margin:0 0 14px 0" class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
@@ -902,13 +902,45 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     rememberTombstone(id,deletedAt);return {ok:true,deletedAt};
   }
 
+  // V3.6.6 — lectura completa de la nube con paginación.
+  // Supabase/PostgREST devuelve como máximo 1.000 filas por consulta por defecto.
+  // El Journal ya puede superar ese límite, por lo que una sola consulta dejaba
+  // fuera los movimientos más recientes (ordenados por seq ascendente).
+  // Eso hacía parecer que el Journal se había "reseteado" al abrir la página
+  // nuevamente, especialmente al pasar de 1.000 registros.
   async function fetchCloudRows(){
-    const user=await cloudUser();if(!user)return {ok:false,reason:'not_authenticated',rows:[]};
-    const {data:rows,error}=await supabaseClient.from('journal_moves')
-      .select('legacy_id,seq,type,occurred_at,payload,updated_at')
-      .eq('user_id',user.id).order('seq',{ascending:true});
-    if(error)throw error;
-    return {ok:true,rows:rows||[]};
+    const user=await cloudUser();
+    if(!user)return {ok:false,reason:'not_authenticated',rows:[]};
+
+    const pageSize=500;
+    const allRows=[];
+    let from=0;
+
+    while(true){
+      const {data:page,error}=await supabaseClient.from('journal_moves')
+        .select('legacy_id,seq,type,occurred_at,payload,updated_at')
+        .eq('user_id',user.id)
+        .order('seq',{ascending:true})
+        .order('legacy_id',{ascending:true})
+        .range(from,from+pageSize-1);
+
+      if(error)throw error;
+      const rows=page||[];
+      allRows.push(...rows);
+
+      if(rows.length<pageSize)break;
+      from+=pageSize;
+    }
+
+    // Orden final estable por secuencia para que replay() conserve exactamente
+    // el mismo orden independientemente de cuántas páginas haya en Supabase.
+    allRows.sort((a,b)=>{
+      const sa=Number(a.seq)||0,sb=Number(b.seq)||0;
+      if(sa!==sb)return sa-sb;
+      return String(a.legacy_id||'').localeCompare(String(b.legacy_id||''));
+    });
+
+    return {ok:true,rows:allRows};
   }
 
   function rebuildStateFromCloud(rows){
@@ -948,7 +980,7 @@ function save(){localStorage.setItem(DATA_KEY,JSON.stringify(data))}
     // newly registered operation disappear on reload when its upload had not
     // completed yet. We keep a safety snapshot and merge instead.
     try{
-      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.5',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
+      const snapshot={app:'Vzla Coin · Sistema de Remesas',version:'V3.6.6',savedAt:nowIso(),scope:DATA_SCOPE,data:JSON.parse(JSON.stringify(data))};
       localStorage.setItem('vzla_coin_precloud_v364',JSON.stringify(snapshot));
     }catch(e){console.warn('Local safety snapshot error',e);}
 
@@ -1865,8 +1897,10 @@ previewRemittance();
       const result=await initialCloudSync();
       if(result.mode==='pull'){
         msg(`✅ Journal compartido cargado. ${result.rows} registros en la nube.`,true);
+      }else if(result.mode==='push_local'){
+        msg(`✅ Nube vacía: Journal local subido a la nube. ${result.pushed} registros.`,true);
       }else{
-        msg(`✅ Journal local subido a la nube. ${result.pushed} registros.`,true);
+        msg(`✅ Journal sincronizado. ${data.moves.length} movimientos · ${data.closures.length} cierres.`,true);
       }
       startCloudWatcher();
     }catch(e){
@@ -1965,7 +1999,7 @@ previewRemittance();
       if(!raw){ alert('No hay datos del Journal para respaldar.'); return; }
       const payload={
         app:'Vzla Coin · Sistema de Remesas',
-        version:'V3.6.5',
+        version:'V3.6.6',
         exportedAt:new Date().toISOString(),
         data:JSON.parse(raw)
       };
@@ -1975,7 +2009,7 @@ previewRemittance();
       const d=new Date();
       const stamp=d.toISOString().slice(0,10);
       a.href=url;
-      a.download='VzlaCoin_Journal_Backup_V3.6.5_'+stamp+'.json';
+      a.download='VzlaCoin_Journal_Backup_V3.6.6_'+stamp+'.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
